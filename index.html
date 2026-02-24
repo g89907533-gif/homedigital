@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#0A2F2F">
+    <title>البيت الرقمي - Al-Bayt Al-Raqmi</title>
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display-all" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ios-bg-primary: #0A2F2F;
+            --ios-bg-secondary: rgba(16, 55, 55, 0.85);
+            --glass-bg: rgba(12, 45, 45, 0.65);
+            --glass-border: 0.5px solid rgba(247, 249, 249, 0.15);
+            --glass-blur: blur(40px) saturate(210%) brightness(1.1);
+            --ios-blue-neon: #FF9F1C;
+            --ios-green-neon: #2EC4B6;
+            --ios-orange: #FF9F1C;
+            --ios-red: #E71D36;
+            --ios-purple: #5A9A9A;
+            --ios-label-primary: #F7F9F9;
+            --ios-label-secondary: rgba(247, 249, 249, 0.8);
+            --ios-label-tertiary: rgba(247, 249, 249, 0.55);
+            --ios-spring: cubic-bezier(0.25, 1, 0.2, 1);
+            --ios-spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --sat: env(safe-area-inset-top);
+            --sar: env(safe-area-inset-right);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'SF Pro Display', 'Cairo', -apple-system, sans-serif;
+            -webkit-touch-callout: none;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: var(--ios-bg-primary);
+            color: var(--ios-label-primary);
+            direction: rtl;
+            overflow-x: hidden;
+            line-height: 1.47059;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            will-change: transform;
+            transform: translateZ(0);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-top: var(--sat);
+            padding-right: var(--sar);
+            padding-left: var(--sal);
+            padding-bottom: var(--sab);
+        }
+
+        main {
+            flex: 1;
+            contain: layout style paint;
+            width: 100%;
+        }
+
+        .bg-animated::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(255, 159, 28, 0.15) 0%, transparent 55%),
+                radial-gradient(circle at 100% 0%, rgba(46, 196, 182, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(255, 159, 28, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 0% 100%, rgba(90, 154, 154, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(46, 196, 182, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Loading Screen */
+        .firebase-loading {
+            position: fixed;
+            inset: 0;
+            background: #0A2F2F;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            will-change: opacity;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .firebase-loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .firebase-loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 159, 28, 0.2);
+            border-top-color: #FF9F1C;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        .firebase-loading-text {
+            color: var(--ios-label-secondary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            width: 100%;
+            height: 55vh;
+            height: 55dvh;
+            min-height: 350px;
+            max-height: 500px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0A2F2F 0%, #0D3A3A 30%, #0A2F2F 70%, #081F1F 100%);
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.6) contrast(1.05) saturate(0.9);
+            opacity: 0.7;
+            transform: scale(1.05);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, 
+                rgba(10, 47, 47, 0.2) 0%, 
+                rgba(10, 47, 47, 0.5) 40%,
+                rgba(10, 47, 47, 0.85) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            padding-top: calc(20px + var(--sat));
+        }
+
+        .hero-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.4));
+            animation: fadeIn 0.6s var(--ios-spring);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 159, 28, 0.3);
+            background: rgba(10, 47, 47, 0.3);
+            padding: 8px;
+        }
+
+        .hero-title {
+            font-size: clamp(32px, 8vw, 48px);
+            font-weight: 900;
+            color: white;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.6s 0.1s var(--ios-spring) backwards;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-title span {
+            color: #FF9F1C;
+            background: linear-gradient(135deg, #FF9F1C 0%, #FFB347 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(14px, 4vw, 18px);
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 24px;
+            line-height: 1.7;
+            text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.6s 0.2s var(--ios-spring) backwards;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-address {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            color: white;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            animation: fadeIn 0.6s 0.3s var(--ios-spring) backwards;
+            transition: all 0.3s var(--ios-spring);
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .hero-address i {
+            color: #FF9F1C;
+            font-size: 16px;
+        }
+
+        .hero-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            text-decoration: none;
+            animation: fadeIn 0.6s 0.4s var(--ios-spring) backwards;
+            box-shadow: 0 8px 30px rgba(255, 159, 28, 0.35);
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(255, 159, 28, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        .ios-footer {
+            background: linear-gradient(180deg, 
+                rgba(10, 47, 47, 0.3) 0%, 
+                rgba(16, 55, 55, 0.6) 20%,
+                rgba(10, 47, 47, 0.85) 50%, 
+                rgba(8, 35, 35, 0.95) 100%);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-top: 1px solid rgba(255, 159, 28, 0.15);
+            padding: 50px 24px 30px;
+            padding-bottom: calc(30px + var(--sab));
+            margin-top: 60px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .ios-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 159, 28, 0.6) 20%, 
+                rgba(46, 196, 182, 0.6) 50%, 
+                rgba(255, 159, 28, 0.6) 80%, 
+                transparent 100%);
+            opacity: 0.8;
+        }
+
+        .footer-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.4s var(--ios-spring);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            touch-action: manipulation;
+        }
+
+        .social-link.facebook:hover { background: #1877F2; border-color: #1877F2; box-shadow: 0 10px 30px rgba(24, 119, 242, 0.4); }
+        .social-link.instagram:hover { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-color: transparent; box-shadow: 0 10px 30px rgba(220, 39, 67, 0.4); }
+        .social-link.whatsapp:hover { background: #25D366; border-color: #25D366; box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4); }
+
+        .footer-text {
+            color: var(--ios-label-secondary);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .copyright {
+            color: var(--ios-label-tertiary);
+            font-size: 13px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .copyright strong {
+            color: #FF9F1C;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        button, .ios-btn {
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s var(--ios-spring);
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+        }
+
+        button:active, .ios-btn:active { 
+            transform: scale(0.96); 
+        }
+
+        .ios-btn-primary {
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            padding: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 32px);
+            border-radius: var(--radius-lg);
+            font-size: clamp(15px, 4vw, 17px);
+            box-shadow: 0 4px 20px rgba(255, 159, 28, 0.4);
+            width: 100%;
+        }
+
+        .ios-btn-success {
+            background: linear-gradient(135deg, #2EC4B6 0%, #25A89C 100%);
+            color: white;
+            padding: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 32px);
+            border-radius: var(--radius-lg);
+            font-size: clamp(15px, 4vw, 17px);
+            box-shadow: 0 4px 20px rgba(46, 196, 182, 0.4);
+            width: 100%;
+        }
+
+        .ios-btn-secondary {
+            background: rgba(247, 249, 249, 0.1);
+            color: var(--ios-label-primary);
+            padding: clamp(10px, 2.5vw, 14px) clamp(16px, 4vw, 24px);
+            border-radius: var(--radius-lg);
+            font-size: clamp(14px, 3.5vw, 16px);
+            border: var(--glass-border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Inputs */
+        .ios-input {
+            background: rgba(247, 249, 249, 0.1);
+            border: none;
+            border-radius: 14px;
+            padding: clamp(12px, 3vw, 16px);
+            color: var(--ios-label-primary);
+            font-size: clamp(16px, 4vw, 17px);
+            width: 100%;
+            transition: all 0.3s var(--ios-spring);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .ios-input:focus {
+            background: rgba(247, 249, 249, 0.2);
+            box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.15);
+        }
+
+        .ios-input.error {
+            border: 2px solid var(--ios-red);
+            box-shadow: 0 0 0 4px rgba(231, 29, 54, 0.15);
+        }
+
+        .ios-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(247, 249, 249, 0.1);
+            border: var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 40px 14px 16px;
+            color: var(--ios-label-primary);
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            outline: none;
+        }
+
+        .ios-select:focus {
+            background: rgba(247, 249, 249, 0.2);
+            box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.15);
+            border-color: #FF9F1C;
+        }
+
+        /* Navbar */
+        .ios-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 47, 47, 0.85);
+            backdrop-filter: blur(60px) saturate(250%);
+            -webkit-backdrop-filter: blur(60px) saturate(250%);
+            border-bottom: var(--glass-border);
+            padding: 16px 24px;
+            padding-top: calc(16px + var(--sat));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s var(--ios-spring);
+        }
+
+        .ios-navbar.scrolled {
+            background: rgba(10, 47, 47, 0.95);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 12px 24px;
+            padding-top: calc(12px + var(--sat));
+        }
+
+        .logo-text {
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 900;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FF9F1C 0%, #FFB347 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cart-badge {
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 50%;
+            font-size: 12px;
+            margin-right: 4px;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* Search */
+        .ios-search-container {
+            position: sticky;
+            top: calc(70px + var(--sat));
+            z-index: 950;
+            background: rgba(10, 47, 47, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-bottom: var(--glass-border);
+            width: 100%;
+        }
+
+        .ios-search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .ios-search-input {
+            width: 100%;
+            background: rgba(247, 249, 249, 0.1);
+            border: var(--glass-border);
+            border-radius: 50px;
+            padding: 14px 50px 14px 20px;
+            color: var(--ios-label-primary);
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s var(--ios-spring);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .ios-search-input::placeholder {
+            color: var(--ios-label-tertiary);
+        }
+
+        .ios-search-input:focus {
+            background: rgba(247, 249, 249, 0.2);
+            box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.15);
+        }
+
+        .ios-search-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ios-label-tertiary);
+            font-size: 18px;
+            pointer-events: none;
+        }
+
+        .ios-search-clear {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(120, 120, 128, 0.4);
+            border: none;
+            color: var(--ios-label-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s var(--ios-spring);
+            opacity: 0;
+            touch-action: manipulation;
+        }
+
+        .ios-search-clear.visible {
+            transform: translateY(-50%) scale(1);
+            opacity: 1;
+        }
+
+        /* Filter Bars */
+        .ios-filter-bar {
+            display: flex;
+            gap: 12px;
+            padding: 16px 24px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: sticky;
+            top: calc(140px + var(--sat));
+            z-index: 900;
+            background: rgba(10, 47, 47, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            width: 100%;
+        }
+
+        .ios-filter-bar::-webkit-scrollbar { display: none; }
+
+        .subcategory-filter-bar {
+            display: flex;
+            gap: 12px;
+            padding: 12px 24px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            background: rgba(10, 47, 47, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: var(--glass-border);
+            animation: slideDown 0.4s var(--ios-spring);
+            width: 100%;
+        }
+
+        .subcategory-filter-bar::-webkit-scrollbar { display: none; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ios-chip {
+            background: rgba(247, 249, 249, 0.08);
+            border: var(--glass-border);
+            color: var(--ios-label-secondary);
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s var(--ios-spring);
+            cursor: pointer;
+            flex-shrink: 0;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .ios-chip.active {
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 159, 28, 0.4);
+            border-color: transparent;
+        }
+
+        .ios-chip.subcategory {
+            background: rgba(90, 154, 154, 0.2);
+            border-color: rgba(90, 154, 154, 0.3);
+        }
+
+        .ios-chip.subcategory.active {
+            background: linear-gradient(135deg, #5A9A9A 0%, #4A8A8A 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(90, 154, 154, 0.4);
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            padding: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .ios-product-card {
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all 0.4s var(--ios-spring);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            animation: cardEnter 0.5s var(--ios-spring) forwards;
+            -webkit-transform: translateZ(0);
+            height: 100%;
+        }
+
+        .ios-product-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes cardEnter {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Images Gallery in Card */
+        .card-images-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 4px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            max-height: 180px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 159, 28, 0.5) transparent;
+        }
+
+        .card-images-gallery::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .card-images-gallery::-webkit-scrollbar-thumb {
+            background: rgba(255, 159, 28, 0.5);
+            border-radius: 2px;
+        }
+
+        .card-image-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .card-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            user-select: none;
+            transition: transform 0.3s ease;
+        }
+
+        .card-image-item:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Card Content */
+        .card-content-full {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .product-header {
+            margin-bottom: 12px;
+        }
+
+        .product-name-full {
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 800;
+            color: var(--ios-label-primary);
+            margin-bottom: 8px;
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+
+        .product-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .badge-mini {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-cat {
+            background: rgba(255, 159, 28, 0.2);
+            color: #FF9F1C;
+        }
+
+        .badge-subcat {
+            background: rgba(90, 154, 154, 0.2);
+            color: var(--ios-purple);
+        }
+
+        /* Price Section */
+        .product-price-full {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(247, 249, 249, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .price-iqd-full {
+            font-size: clamp(18px, 5vw, 22px);
+            font-weight: 900;
+            color: #FF9F1C;
+        }
+
+        .price-usd-full {
+            font-size: 14px;
+            color: var(--ios-label-tertiary);
+            text-decoration: line-through;
+        }
+
+        /* Description with Toggle */
+        .product-description-full {
+            margin-bottom: 12px;
+        }
+
+        .description-text-full {
+            font-size: 14px;
+            color: var(--ios-label-secondary);
+            line-height: 1.6;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ios-spring);
+        }
+
+        .description-text-full.collapsed {
+            max-height: 1.6em;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+
+        .description-text-full.expanded {
+            max-height: 500px;
+            -webkit-line-clamp: unset;
+        }
+
+        .show-more-btn-full {
+            background: transparent;
+            border: none;
+            color: #FF9F1C;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 0;
+            margin-top: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s var(--ios-spring);
+        }
+
+        .show-more-btn-full:hover {
+            color: #FFB347;
+            gap: 8px;
+        }
+
+        .show-more-btn-full::after {
+            content: '›';
+            font-size: 16px;
+            transition: transform 0.3s var(--ios-spring);
+        }
+
+        .show-more-btn-full.expanded::after {
+            transform: rotate(90deg);
+        }
+
+        /* Colors Section */
+        .product-colors-full {
+            margin-bottom: 12px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(247, 249, 249, 0.1);
+        }
+
+        .colors-label-full {
+            font-size: 12px;
+            color: var(--ios-label-tertiary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .colors-list-full {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .color-item-full {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .color-dot-full {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .color-name-full {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .product-actions-full {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid rgba(247, 249, 249, 0.1);
+        }
+
+        .btn-action-full {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: clamp(13px, 3.5vw, 14px);
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .btn-cart-full {
+            background: rgba(255, 159, 28, 0.2);
+            color: #FF9F1C;
+            border: 1px solid rgba(255, 159, 28, 0.3);
+        }
+
+        .btn-cart-full:hover {
+            background: #FF9F1C;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-cart-full:active {
+            transform: scale(0.95);
+        }
+
+        .btn-buy-full {
+            background: rgba(46, 196, 182, 0.2);
+            color: var(--ios-green-neon);
+            border: 1px solid rgba(46, 196, 182, 0.3);
+        }
+
+        .btn-buy-full:hover {
+            background: var(--ios-green-neon);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-buy-full:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== ENHANCED TOAST NOTIFICATION ===== */
+        .ios-toast {
+            position: fixed;
+            top: calc(20px + var(--sat));
+            left: 50%;
+            transform: translate3d(-50%, -150%, 0);
+            background: linear-gradient(135deg, rgba(46, 196, 182, 0.95) 0%, rgba(38, 166, 154, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 15px;
+            z-index: 9999;
+            transition: all 0.5s var(--ios-spring-bounce);
+            box-shadow: 0 10px 40px rgba(46, 196, 182, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 200px;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ios-toast.show {
+            transform: translate3d(-50%, 20px, 0);
+        }
+
+        .ios-toast.error {
+            background: linear-gradient(135deg, rgba(231, 29, 54, 0.95) 0%, rgba(200, 25, 48, 0.95) 100%);
+            box-shadow: 0 10px 40px rgba(231, 29, 54, 0.4);
+        }
+
+        .ios-toast.cart {
+            background: linear-gradient(135deg, rgba(255, 159, 28, 0.95) 0%, rgba(232, 141, 12, 0.95) 100%);
+            box-shadow: 0 10px 40px rgba(255, 159, 28, 0.4);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            animation: bounceIn 0.5s var(--ios-spring-bounce);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== RESPONSIVE GRID ===== */
+        @media (max-width: 1400px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 20px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 16px;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 14px;
+                padding: 14px;
+            }
+            
+            .ios-navbar {
+                padding: 12px 16px;
+                padding-top: calc(12px + var(--sat));
+            }
+            
+            .ios-search-container {
+                padding: 10px 16px;
+                top: calc(60px + var(--sat));
+            }
+            
+            .ios-search-input {
+                padding: 12px 45px 12px 16px;
+                font-size: 15px;
+            }
+            
+            .ios-filter-bar {
+                top: calc(120px + var(--sat));
+                padding: 12px 16px;
+            }
+            
+            .hero-section {
+                height: 50vh;
+                height: 50dvh;
+            }
+            
+            .hero-title {
+                font-size: 32px;
+            }
+            
+            .hero-subtitle {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 16px;
+            }
+            
+            .card-images-gallery {
+                grid-template-columns: repeat(4, 1fr);
+                max-height: 140px;
+            }
+            
+            .product-actions-full {
+                flex-direction: column;
+            }
+            
+            .btn-action-full {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .products-grid {
+                padding: 12px;
+                gap: 12px;
+            }
+            
+            .card-content-full {
+                padding: 12px;
+            }
+            
+            .card-images-gallery {
+                grid-template-columns: repeat(3, 1fr);
+                padding: 8px;
+            }
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Loading State */
+        .loading-container {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--ios-label-secondary);
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(247, 249, 249, 0.1);
+            border-top-color: #FF9F1C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+
+        /* No Results */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--ios-label-secondary);
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .no-results h3 {
+            color: var(--ios-label-primary);
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+
+        /* Sync Status */
+        .sync-status {
+            position: fixed;
+            bottom: calc(20px + var(--sab));
+            left: 20px;
+            padding: 10px 18px;
+            background: rgba(20, 60, 60, 0.95);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--ios-label-secondary);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s var(--ios-spring);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sync-status.online {
+            color: var(--ios-green-neon);
+        }
+
+        .sync-status.offline {
+            color: #E71D36;
+        }
+
+        .sync-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 47, 47, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #FF9F1C, #2EC4B6);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #FFB347, #3DD4C6);
+        }
+
+        ::selection {
+            background: rgba(255, 159, 28, 0.3);
+            color: #F7F9F9;
+        }
+
+        :focus-visible {
+            outline: 2px solid #FF9F1C;
+            outline-offset: 2px;
+        }
+
+        /* iOS Specific Fixes */
+        @supports (-webkit-touch-callout: none) {
+            .hero-section {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            
+            .ios-product-card {
+                animation: none !important;
+            }
+        }
+
+        /* Print */
+        @media print {
+            .ios-navbar,
+            .ios-footer,
+            .ios-search-container,
+            .ios-filter-bar,
+            .subcategory-filter-bar,
+            .hero-section {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            
+            .ios-product-card {
+                break-inside: avoid;
+                border: 1px solid #ddd;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-animated">
+
+    <!-- Firebase Loading Screen -->
+    <div id="firebaseLoading" class="firebase-loading">
+        <div class="firebase-loading-spinner"></div>
+        <div class="firebase-loading-text">جاري تحميل المتجر...</div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="ios-toast"></div>
+    
+    <!-- Sync Status -->
+    <div id="syncStatus" class="sync-status offline">
+        <div class="sync-dot"></div>
+        <span id="syncText">جاري الاتصال...</span>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <img src="d.jpg" alt="البيت الرقمي" class="hero-bg" onerror="this.style.display='none'">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <img src="5206622565152003134_121.jpg" alt="Logo" class="hero-logo" onerror="this.style.display='none'">
+            <h1 class="hero-title">البيت <span>الرقمي</span></h1>
+            <p class="hero-subtitle">كل شي بالك يوصل لباب دارك، تسوق آمن، سريع، ومضمون</p>
+            <div class="hero-address">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>الحلة - ابو غرق - شارع الامام</span>
+            </div>
+            <button class="hero-btn" onclick="document.getElementById('searchInput').focus()">تصفح المنتجات</button>
+        </div>
+    </section>
+
+    <!-- Header -->
+    <header class="ios-navbar">
+        <div onclick="location.reload()" class="logo-text">البيت الرقمي</div>
+        <div style="display: flex; gap: 12px;">
+            <a href="cart.html" class="ios-btn-secondary" style="position: relative; text-decoration: none;">
+                🛒 
+                <span id="cartCount" class="cart-badge" style="position: absolute; top: -8px; right: -8px; background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%); color: white; padding: 2px 8px; border-radius: 50%; font-size: 12px; min-width: 24px; text-align: center; display: none;">0</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="ios-search-container">
+        <div class="ios-search-wrapper">
+            <input type="text" id="searchInput" class="ios-search-input" placeholder="🔍 ابحث عن منتج..." oninput="handleSearch(this.value)">
+            <i class="ios-search-icon fas fa-search"></i>
+            <button class="ios-search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+    </div>
+
+    <!-- Filter Bars -->
+    <div class="ios-filter-bar" id="filterBar"></div>
+    <div class="subcategory-filter-bar" id="subcategoryBar" style="display: none;"></div>
+
+    <!-- Main Content -->
+    <main>
+        <div id="mainGrid" class="products-grid">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>جاري تحميل المنتجات...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="ios-footer">
+        <div class="footer-content">
+            <div class="social-links">
+                <a href="https://www.facebook.com/share/182h5phj37/" target="_blank" rel="noopener noreferrer" class="social-link facebook" title="تابعنا على فيسبوك">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://www.instagram.com/ah.00_t?igsh=MWh4bDlmcnFjaTl1dg==" target="_blank" rel="noopener noreferrer" class="social-link instagram" title="تابعنا على إنستغرام">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://wa.me/9647863388806" target="_blank" rel="noopener noreferrer" class="social-link whatsapp" title="تواصل معنا عبر واتساب">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+            </div>
+            
+            <div class="footer-text">
+                <p>شكراً لزيارتك البيت الرقمي</p>
+                <p>نحن هنا لخدمتك بأفضل الطرق</p>
+            </div>
+            
+            <div class="copyright">
+                <p>© 2026 جميع الحقوق محفوظة لـ <strong>مطورين البيت الرقمي</strong></p>
+                <p>البيت الرقمي - Al-Bayt Al-Raqmi</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            onSnapshot,
+            query,
+            orderBy,
+            enableIndexedDbPersistence,
+            increment
+        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2f4rJBBBOe6qfa2EU1WfspUB5uibgwnM",
+            authDomain: "hussain-1290b.firebaseapp.com",
+            projectId: "hussain-1290b",
+            storageBucket: "hussain-1290b.firebasestorage.app",
+            messagingSenderId: "798281706738",
+            appId: "1:798281706738:web:79314f6feb2add0bf5f46b",
+            measurementId: "G-107DF3Y7ZC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        try {
+            enableIndexedDbPersistence(db);
+        } catch (err) {
+            console.log("Persistence already enabled");
+        }
+
+        let products = [];
+        let categories = ["الكل", "عام"];
+        let subcategories = [];
+        let currentSearchQuery = '';
+        let currentCategory = 'الكل';
+        let currentSubcategory = 'all';
+        let isOnline = false;
+
+        const productsRef = collection(db, "products");
+        const categoriesRef = collection(db, "categories");
+        const subcategoriesRef = collection(db, "subcategories");
+
+        // ===== INITIALIZATION =====
+        async function initApp() {
+            setupRealtimeListeners();
+            trackVisitor();
+            
+            window.addEventListener('online', () => updateSyncStatus(true));
+            window.addEventListener('offline', () => updateSyncStatus(false));
+            updateSyncStatus(navigator.onLine);
+            
+            setupIOSFixes();
+            loadCartCount();
+        }
+
+        function setupIOSFixes() {
+            const setVH = () => {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            };
+            
+            setVH();
+            window.addEventListener('resize', setVH);
+            window.addEventListener('orientationchange', () => setTimeout(setVH, 100));
+            
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) e.preventDefault();
+                lastTouchEnd = now;
+            }, { passive: false });
+        }
+
+        function hideFirebaseLoading() {
+            const loading = document.getElementById('firebaseLoading');
+            if (loading) {
+                loading.classList.add('hidden');
+                setTimeout(() => loading.style.display = 'none', 300);
+            }
+        }
+
+        function setupRealtimeListeners() {
+            const productsQuery = query(productsRef, orderBy("createdAt", "desc"));
+            onSnapshot(productsQuery, (snapshot) => {
+                const newProducts = [];
+                snapshot.forEach((doc) => {
+                    if (doc.id !== "init") {
+                        newProducts.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                
+                if (JSON.stringify(products) !== JSON.stringify(newProducts)) {
+                    products = newProducts;
+                    renderProducts(currentCategory, currentSubcategory, currentSearchQuery);
+                }
+                
+                hideFirebaseLoading();
+                updateSyncStatus(true);
+            }, (error) => {
+                console.error("Products error:", error);
+                updateSyncStatus(false);
+                hideFirebaseLoading();
+            });
+
+            onSnapshot(categoriesRef, (snapshot) => {
+                const newCategories = ["الكل"];
+                snapshot.forEach((doc) => {
+                    if (doc.id !== "init") {
+                        const catName = doc.data().name;
+                        if (!newCategories.includes(catName)) newCategories.push(catName);
+                    }
+                });
+                categories = newCategories;
+                refreshUI();
+            });
+
+            onSnapshot(subcategoriesRef, (snapshot) => {
+                const newSubcategories = [];
+                snapshot.forEach((doc) => {
+                    if (doc.id !== "init") {
+                        newSubcategories.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                subcategories = newSubcategories;
+                refreshUI();
+            });
+        }
+
+        async function trackVisitor() {
+            try {
+                const statsRef = doc(db, "stats", "visitors");
+                await setDoc(statsRef, { 
+                    count: increment(1), 
+                    lastUpdated: new Date().toISOString() 
+                }, { merge: true });
+            } catch (error) {
+                console.error("Visitor tracking error:", error);
+            }
+        }
+
+        function updateSyncStatus(online) {
+            isOnline = online;
+            const statusEl = document.getElementById('syncStatus');
+            const textEl = document.getElementById('syncText');
+            
+            if (statusEl && textEl) {
+                if (online) {
+                    statusEl.classList.remove('offline');
+                    statusEl.classList.add('online');
+                    textEl.innerText = 'متصل';
+                } else {
+                    statusEl.classList.remove('online');
+                    statusEl.classList.add('offline');
+                    textEl.innerText = 'غير متصل';
+                }
+            }
+        }
+
+        function loadCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+            let count = 0;
+            Object.values(cart).forEach(item => {
+                count += item.qty;
+            });
+            const countEl = document.getElementById('cartCount');
+            if (countEl) {
+                if (count > 0) {
+                    countEl.style.display = 'inline-block';
+                    countEl.innerText = count;
+                } else {
+                    countEl.style.display = 'none';
+                }
+            }
+        }
+
+        // ===== SEARCH =====
+        window.handleSearch = function(query) {
+            currentSearchQuery = query.trim().toLowerCase();
+            
+            const clearBtn = document.getElementById('searchClear');
+            const searchInput = document.getElementById('searchInput');
+            
+            if (clearBtn) {
+                if (currentSearchQuery.length > 0) {
+                    clearBtn.classList.add('visible');
+                } else {
+                    clearBtn.classList.remove('visible');
+                }
+            }
+            
+            renderProducts(currentCategory, currentSubcategory, currentSearchQuery);
+        };
+
+        window.clearSearch = function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+                currentSearchQuery = '';
+                const clearBtn = document.getElementById('searchClear');
+                if (clearBtn) clearBtn.classList.remove('visible');
+                searchInput.focus();
+                renderProducts(currentCategory, currentSubcategory, '');
+            }
+        };
+
+        // ===== PRODUCT DISPLAY =====
+        function renderProducts(filter = "الكل", subFilter = "all", searchQuery = '') {
+            currentCategory = filter;
+            currentSubcategory = subFilter;
+            const grid = document.getElementById('mainGrid');
+            
+            if (!grid) return;
+            
+            let filtered = products.filter(p => filter === "الكل" || p.cat === filter);
+            
+            if (subFilter !== 'all' && subFilter) {
+                filtered = filtered.filter(p => p.subCat === subFilter);
+            }
+            
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(query) || 
+                    (p.desc && p.desc.toLowerCase().includes(query))
+                );
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h3>لا توجد نتائج</h3>
+                        <p>جرب البحث بكلمات مختلفة أو تصفح الأقسام</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map((p, idx) => {
+                const hasImages = p.images && p.images.length > 0;
+                const hasDescription = p.desc && p.desc.trim().length > 0;
+                const descText = hasDescription ? p.desc.trim() : '';
+                const needsToggle = descText.length > 50;
+
+                let imagesHtml = '';
+                if (hasImages) {
+                    imagesHtml = `
+                        <div class="card-images-gallery">
+                            ${p.images.map((src) => `
+                                <div class="card-image-item">
+                                    <img src="${src}" alt="${p.name}" loading="lazy" draggable="false">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    imagesHtml = `
+                        <div class="card-images-gallery" style="display: flex; align-items: center; justify-content: center; min-height: 100px; color: var(--ios-label-tertiary);">
+                            لا توجد صور
+                        </div>
+                    `;
+                }
+
+                let colorsHtml = '';
+                if (p.colors && p.colors.length > 0) {
+                    colorsHtml = `
+                        <div class="product-colors-full">
+                            <div class="colors-label-full">الألوان المتوفرة:</div>
+                            <div class="colors-list-full">
+                                ${p.colors.map(c => `
+                                    <div class="color-item-full">
+                                        <div class="color-dot-full" style="background-color: ${c.code}; ${c.code === '#FFFFFF' ? 'border: 2px solid rgba(0,0,0,0.2);' : ''}"></div>
+                                        <span class="color-name-full">${c.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="ios-product-card" style="animation-delay: ${idx * 0.05}s;">
+                        ${imagesHtml}
+                        
+                        <div class="card-content-full">
+                            <div class="product-header">
+                                <div class="product-badges">
+                                    ${p.cat ? `<span class="badge-mini badge-cat">${p.cat}</span>` : ''}
+                                    ${p.subCat ? `<span class="badge-mini badge-subcat">${p.subCat}</span>` : ''}
+                                </div>
+                                <h3 class="product-name-full">${p.name}</h3>
+                            </div>
+
+                            <div class="product-price-full">
+                                <span class="price-iqd-full">${p.priceIQD ? p.priceIQD.toLocaleString() + ' د.ع' : (p.priceUSD ? '$' + p.priceUSD : 'غير محدد')}</span>
+                                ${p.priceUSD && p.priceIQD ? `<span class="price-usd-full">$${p.priceUSD}</span>` : ''}
+                            </div>
+
+                            ${hasDescription ? `
+                                <div class="product-description-full">
+                                    <div id="desc-${p.id}" class="description-text-full ${needsToggle ? 'collapsed' : ''}">
+                                        ${descText}
+                                    </div>
+                                    ${needsToggle ? `
+                                        <button class="show-more-btn-full" onclick="toggleDescriptionFull('${p.id}')" id="btn-${p.id}">
+                                            عرض المزيد
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+
+                            ${colorsHtml}
+
+                            <div class="product-actions-full">
+                                <button class="btn-action-full btn-cart-full" onclick="addToCart('${p.name}', ${p.priceIQD || p.priceUSD || 0}, '${p.images?.[0] || ''}')">
+                                    <span>🛒</span>
+                                    <span>للسلة</span>
+                                </button>
+                                <a href="buy.html?id=${p.id}" class="btn-action-full btn-buy-full">
+                                    <span>⚡</span>
+                                    <span>شراء</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.toggleDescriptionFull = function(productId) {
+            const descText = document.getElementById(`desc-${productId}`);
+            const btn = document.getElementById(`btn-${productId}`);
+            
+            if (!descText || !btn) return;
+            
+            if (descText.classList.contains('collapsed')) {
+                descText.classList.remove('collapsed');
+                descText.classList.add('expanded');
+                btn.classList.add('expanded');
+                btn.innerHTML = 'عرض أقل';
+            } else {
+                descText.classList.remove('expanded');
+                descText.classList.add('collapsed');
+                btn.classList.remove('expanded');
+                btn.innerHTML = 'عرض المزيد';
+            }
+        };
+
+        // ===== CART FUNCTIONS =====
+        window.addToCart = function(name, price, image = '') {
+            let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+            if (cart[name]) {
+                cart[name].qty++;
+            } else {
+                cart[name] = { price, qty: 1, image };
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCartCount();
+            showToast("تمت الإضافة للسلة بنجاح 🛒", "cart");
+        };
+
+        // ===== CATEGORY FILTERING =====
+        window.selectCategory = function(category, btn) {
+            currentCategory = category;
+            currentSubcategory = 'all';
+            
+            document.querySelectorAll('#filterBar .ios-chip').forEach(ch => {
+                ch.classList.remove('active');
+                ch.style.background = 'rgba(247, 249, 249, 0.08)';
+                ch.style.color = 'var(--ios-label-secondary)';
+                ch.style.boxShadow = 'none';
+            });
+            
+            btn.classList.add('active');
+            btn.style.background = 'linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%)';
+            btn.style.color = 'white';
+            btn.style.boxShadow = '0 4px 15px rgba(255, 159, 28, 0.4)';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            updateSubcategoryBar();
+            renderProducts(category, 'all', currentSearchQuery);
+        };
+
+        window.selectSubcategory = function(subcat, btn) {
+            currentSubcategory = subcat;
+            
+            document.querySelectorAll('#subcategoryBar .ios-chip').forEach(ch => {
+                ch.classList.remove('active');
+                ch.style.background = 'rgba(90, 154, 154, 0.2)';
+                ch.style.color = 'var(--ios-label-secondary)';
+                ch.style.boxShadow = 'none';
+            });
+            
+            btn.classList.add('active');
+            btn.style.background = 'linear-gradient(135deg, #5A9A9A 0%, #4A8A8A 100%)';
+            btn.style.color = 'white';
+            btn.style.boxShadow = '0 4px 15px rgba(90, 154, 154, 0.4)';
+            
+            renderProducts(currentCategory, subcat, currentSearchQuery);
+        };
+
+        function updateSubcategoryBar() {
+            const subBar = document.getElementById('subcategoryBar');
+            
+            if (!subBar) return;
+            
+            if (currentCategory === 'الكل') {
+                subBar.style.display = 'none';
+                return;
+            }
+            
+            const relatedSubcats = subcategories.filter(s => s.parentCategory === currentCategory);
+            
+            if (relatedSubcats.length === 0) {
+                subBar.style.display = 'none';
+                return;
+            }
+            
+            subBar.style.display = 'flex';
+            subBar.innerHTML = `
+                <button class="ios-chip subcategory active" onclick="selectSubcategory('all', this)" style="background: linear-gradient(135deg, #5A9A9A 0%, #4A8A8A 100%); color: white; box-shadow: 0 4px 15px rgba(90, 154, 154, 0.4); border: none; padding: 10px 24px; border-radius: 50px; font-size: 15px; font-weight: 600; cursor: pointer; flex-shrink: 0;">الكل</button>
+            ` + relatedSubcats.map(s => `
+                <button class="ios-chip subcategory" onclick="selectSubcategory('${s.name}', this)" style="background: rgba(90, 154, 154, 0.2); border: 1px solid rgba(90, 154, 154, 0.3); color: var(--ios-label-secondary); padding: 10px 24px; border-radius: 50px; font-size: 15px; font-weight: 600; cursor: pointer; flex-shrink: 0;">${s.name}</button>
+            `).join('');
+        }
+
+        function refreshUI() {
+            const filterBar = document.getElementById('filterBar');
+            if (filterBar) {
+                filterBar.innerHTML = categories.map((c, i) => `
+                    <button class="ios-chip ${i === 0 ? 'active' : ''}" 
+                            onclick="selectCategory('${c}', this)"
+                            style="${i === 0 ? 'background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%); color: white; box-shadow: 0 4px 15px rgba(255, 159, 28, 0.4);' : 'background: rgba(247, 249, 249, 0.08); color: var(--ios-label-secondary);'} 
+                                    border: none; 
+                                    padding: 10px 24px; 
+                                    border-radius: 50px; 
+                                    font-size: 15px; 
+                                    font-weight: 600; 
+                                    cursor: pointer; 
+                                    flex-shrink: 0;
+                                    transition: all 0.3s var(--ios-spring);">
+                        ${c}
+                    </button>
+                `).join('');
+            }
+            
+            updateSubcategoryBar();
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            
+            toast.className = 'ios-toast';
+            
+            if (type === 'error') toast.classList.add('error');
+            if (type === 'cart') toast.classList.add('cart');
+            
+            let icon = '✓';
+            if (type === 'error') icon = '✕';
+            if (type === 'cart') icon = '🛒';
+            
+            toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+            
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.ios-navbar');
+            if (navbar) {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        }, { passive: true });
+
+        // Initialize
+        initApp();
+    </script>
+</body>
+</html>
