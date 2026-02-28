@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#0A2F2F">
+    <title>سلة المشتريات - البيت الرقمي</title>
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display-all" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ios-bg-primary: #0A2F2F;
+            --ios-bg-secondary: rgba(16, 55, 55, 0.85);
+            --glass-bg: rgba(12, 45, 45, 0.65);
+            --glass-border: 0.5px solid rgba(247, 249, 249, 0.15);
+            --glass-blur: blur(40px) saturate(210%) brightness(1.1);
+            --ios-blue-neon: #FF9F1C;
+            --ios-green-neon: #2EC4B6;
+            --ios-orange: #FF9F1C;
+            --ios-red: #E71D36;
+            --ios-purple: #5A9A9A;
+            --ios-label-primary: #F7F9F9;
+            --ios-label-secondary: rgba(247, 249, 249, 0.8);
+            --ios-label-tertiary: rgba(247, 249, 249, 0.55);
+            --ios-spring: cubic-bezier(0.25, 1, 0.2, 1);
+            --ios-spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --sat: env(safe-area-inset-top);
+            --sar: env(safe-area-inset-right);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'SF Pro Display', 'Cairo', -apple-system, sans-serif;
+            -webkit-touch-callout: none;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: var(--ios-bg-primary);
+            color: var(--ios-label-primary);
+            direction: rtl;
+            overflow-x: hidden;
+            line-height: 1.47059;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            will-change: transform;
+            transform: translateZ(0);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-top: var(--sat);
+            padding-right: var(--sar);
+            padding-left: var(--sal);
+            padding-bottom: var(--sab);
+        }
+
+        main {
+            flex: 1;
+            contain: layout style paint;
+            width: 100%;
+        }
+
+        .bg-animated::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(255, 159, 28, 0.15) 0%, transparent 55%),
+                radial-gradient(circle at 100% 0%, rgba(46, 196, 182, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(255, 159, 28, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 0% 100%, rgba(90, 154, 154, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(46, 196, 182, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Navbar */
+        .ios-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 47, 47, 0.85);
+            backdrop-filter: blur(60px) saturate(250%);
+            -webkit-backdrop-filter: blur(60px) saturate(250%);
+            border-bottom: var(--glass-border);
+            padding: 16px 24px;
+            padding-top: calc(16px + var(--sat));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s var(--ios-spring);
+        }
+
+        .ios-navbar.scrolled {
+            background: rgba(10, 47, 47, 0.95);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 12px 24px;
+            padding-top: calc(12px + var(--sat));
+        }
+
+        .logo-text {
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 900;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FF9F1C 0%, #FFB347 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            background: rgba(247, 249, 249, 0.1);
+            color: var(--ios-label-primary);
+            border: var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: rgba(247, 249, 249, 0.2);
+            transform: translateX(-3px);
+        }
+
+        /* Main Container */
+        .cart-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+            padding-bottom: calc(24px + var(--sab));
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #FF9F1C;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-subtitle {
+            color: var(--ios-label-tertiary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Empty Cart */
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--ios-label-secondary);
+        }
+
+        .empty-cart-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            opacity: 0.3;
+        }
+
+        .empty-cart h3 {
+            color: var(--ios-label-primary);
+            margin-bottom: 12px;
+            font-size: 22px;
+        }
+
+        .empty-cart p {
+            margin-bottom: 24px;
+        }
+
+        .btn-shop {
+            display: inline-block;
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s var(--ios-spring);
+            box-shadow: 0 8px 30px rgba(255, 159, 28, 0.35);
+        }
+
+        .btn-shop:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(255, 159, 28, 0.5);
+        }
+
+        /* Cart Items */
+        .cart-items-container {
+            margin-bottom: 24px;
+        }
+
+        .cart-item {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s var(--ios-spring);
+            animation: slideIn 0.4s var(--ios-spring);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .cart-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .cart-item-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 159, 28, 0.3);
+            flex-shrink: 0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cart-item-name {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cart-item-price {
+            color: #FF9F1C;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 50px;
+        }
+
+        .cart-item-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(247, 249, 249, 0.1);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s var(--ios-spring);
+        }
+
+        .cart-item-btn:hover {
+            background: rgba(247, 249, 249, 0.2);
+            transform: scale(1.1);
+        }
+
+        .cart-item-btn.plus {
+            background: #FF9F1C;
+        }
+
+        .cart-item-btn.plus:hover {
+            background: #FFB347;
+        }
+
+        .cart-item-btn.delete {
+            background: rgba(231, 29, 54, 0.3);
+            color: var(--ios-red);
+        }
+
+        .cart-item-btn.delete:hover {
+            background: rgba(231, 29, 54, 0.5);
+        }
+
+        .cart-item-qty {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            color: #FF9F1C;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(247, 249, 249, 0.08);
+            border: 1px solid rgba(247, 249, 249, 0.15);
+            border-radius: 14px;
+            padding: 16px;
+            color: var(--ios-label-primary);
+            font-size: 16px;
+            transition: all 0.3s var(--ios-spring);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-input:focus {
+            background: rgba(247, 249, 249, 0.12);
+            border-color: #FF9F1C;
+            box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--ios-label-tertiary);
+        }
+
+        .form-input.error {
+            border-color: var(--ios-red);
+            box-shadow: 0 0 0 4px rgba(231, 29, 54, 0.1);
+        }
+
+        .form-select-wrapper {
+            position: relative;
+        }
+
+        .form-select-wrapper::after {
+            content: '⌄';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-60%);
+            color: var(--ios-label-secondary);
+            font-size: 20px;
+            pointer-events: none;
+        }
+
+        .form-select {
+            width: 100%;
+            background: rgba(247, 249, 249, 0.08);
+            border: 1px solid rgba(247, 249, 249, 0.15);
+            border-radius: 14px;
+            padding: 16px 40px 16px 16px;
+            color: var(--ios-label-primary);
+            font-size: 16px;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            outline: none;
+        }
+
+        .form-select:focus {
+            background: rgba(247, 249, 249, 0.12);
+            border-color: #FF9F1C;
+            box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.1);
+        }
+
+        .form-error {
+            color: var(--ios-red);
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-error.show {
+            display: flex;
+        }
+
+        /* Shipping Info */
+        .shipping-box {
+            background: linear-gradient(135deg, rgba(255, 159, 28, 0.15) 0%, rgba(255, 159, 28, 0.05) 100%);
+            border: 1px solid rgba(255, 159, 28, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .shipping-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 159, 28, 0.2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FF9F1C;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .shipping-details {
+            flex: 1;
+        }
+
+        .shipping-label {
+            font-size: 14px;
+            color: var(--ios-label-secondary);
+            margin-bottom: 4px;
+        }
+
+        .shipping-cost {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--ios-green-neon);
+        }
+
+        /* Order Summary */
+        .order-summary {
+            background: linear-gradient(135deg, rgba(46, 196, 182, 0.15) 0%, rgba(46, 196, 182, 0.05) 100%);
+            border: 1px solid rgba(46, 196, 182, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: var(--ios-label-secondary);
+            font-size: 15px;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px solid rgba(46, 196, 182, 0.2);
+            color: var(--ios-green-neon);
+            font-weight: 800;
+            font-size: 22px;
+        }
+
+        /* Buttons */
+        .btn-confirm {
+            width: 100%;
+            padding: 18px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #2EC4B6 0%, #25A89C 100%);
+            color: white;
+            font-weight: 800;
+            font-size: 17px;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 30px rgba(46, 196, 182, 0.3);
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(46, 196, 182, 0.4);
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.98);
+        }
+
+        .btn-cancel {
+            width: 100%;
+            padding: 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--ios-label-secondary);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--ios-label-primary);
+        }
+
+        /* Toast */
+        .ios-toast {
+            position: fixed;
+            top: calc(20px + var(--sat));
+            left: 50%;
+            transform: translate3d(-50%, -150%, 0);
+            background: linear-gradient(135deg, rgba(46, 196, 182, 0.95) 0%, rgba(38, 166, 154, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 15px;
+            z-index: 9999;
+            transition: all 0.5s var(--ios-spring-bounce);
+            box-shadow: 0 10px 40px rgba(46, 196, 182, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 200px;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ios-toast.show {
+            transform: translate3d(-50%, 20px, 0);
+        }
+
+        .ios-toast.error {
+            background: linear-gradient(135deg, rgba(231, 29, 54, 0.95) 0%, rgba(200, 25, 48, 0.95) 100%);
+            box-shadow: 0 10px 40px rgba(231, 29, 54, 0.4);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            animation: bounceIn 0.5s var(--ios-spring-bounce);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(30px);
+            z-index: 7000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.5s var(--ios-spring);
+        }
+
+        .success-overlay.active {
+            opacity: 1;
+        }
+
+        .success-container {
+            background: linear-gradient(135deg, rgba(46, 196, 182, 0.2) 0%, rgba(46, 196, 182, 0.05) 100%);
+            border: 2px solid var(--ios-green-neon);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.6s var(--ios-spring-bounce);
+            box-shadow: 0 20px 60px rgba(46, 196, 182, 0.3);
+        }
+
+        .success-overlay.active .success-container {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            width: 90px;
+            height: 90px;
+            background: var(--ios-green-neon);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 45px;
+            color: white;
+            animation: successPop 0.6s var(--ios-spring-bounce);
+            box-shadow: 0 10px 40px rgba(46, 196, 182, 0.5);
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0) rotate(-180deg); }
+            70% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        .success-title {
+            color: var(--ios-green-neon);
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .success-text {
+            color: var(--ios-label-secondary);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .success-highlight {
+            color: #FF9F1C;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cart-container {
+                padding: 16px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .cart-item {
+                flex-wrap: wrap;
+            }
+
+            .cart-item-controls {
+                width: 100%;
+                justify-content: center;
+                margin-top: 12px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 47, 47, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #FF9F1C, #2EC4B6);
+            border-radius: 4px;
+        }
+
+        ::selection {
+            background: rgba(255, 159, 28, 0.3);
+            color: #F7F9F9;
+        }
+
+        :focus-visible {
+            outline: 2px solid #FF9F1C;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="bg-animated">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="ios-toast"></div>
+
+    <!-- Success Overlay -->
+    <div id="successOverlay" class="success-overlay" onclick="closeSuccessModal(event)">
+        <div class="success-container" onclick="event.stopPropagation()">
+            <div class="success-icon">✓</div>
+            <h2 class="success-title">تم إرسال طلبك بنجاح!</h2>
+            <p class="success-text">
+                تم إرسال طلبك إلى <span class="success-highlight">البيت الرقمي</span><br>
+                انتظر <span class="success-highlight">غداً أو بعد غد</span> لوصول طلبك<br>
+                سنتواصل معك قريباً للتأكيد
+            </p>
+            <button class="btn-confirm" onclick="goHome()" style="margin: 0;">العودة للرئيسية</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="ios-navbar">
+        <a href="index.html" class="logo-text">البيت الرقمي</a>
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+            رجوع
+        </a>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="cart-container" id="cartContainer">
+            <h1 class="page-title">🛒 سلة المشتريات</h1>
+            <p class="page-subtitle">راجع منتجاتك وأكمل بيانات التوصيل</p>
+
+            <div id="cartContent">
+                <!-- Cart content will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2f4rJBBBOe6qfa2EU1WfspUB5uibgwnM",
+            authDomain: "hussain-1290b.firebaseapp.com",
+            projectId: "hussain-1290b",
+            storageBucket: "hussain-1290b.firebasestorage.app",
+            messagingSenderId: "798281706738",
+            appId: "1:798281706738:web:79314f6feb2add0bf5f46b",
+            measurementId: "G-107DF3Y7ZC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const TELEGRAM_TOKEN = "8224453502:AAE72lDosgRpoKZwT4TQhyfRLodcsd37ID8";
+        const TELEGRAM_CHAT_ID = "7769271031";
+
+        const IRAQI_PROVINCES = [
+            "بغداد", "البصرة", "نينوى", "أربيل", "السليمانية", "الأنبار",
+            "بابل", "كربلاء", "النجف", "واسط", "صلاح الدين", "كركوك",
+            "دهوك", "ديالى", "ميسان", "القادسية", "ذي قار"
+        ];
+
+        let cart = {};
+
+        // ===== INITIALIZATION =====
+        function init() {
+            loadCart();
+            setupProvinceSelect();
+        }
+
+        function loadCart() {
+            cart = JSON.parse(localStorage.getItem('cart') || '{}');
+            renderCart();
+        }
+
+        function setupProvinceSelect() {
+            const select = document.getElementById('province');
+            if (!select) return;
+            const options = IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
+            select.innerHTML = '<option value="" disabled selected>اختر المحافظة</option>' + options;
+        }
+
+        // ===== RENDER CART =====
+        function renderCart() {
+            const container = document.getElementById('cartContent');
+            const items = Object.entries(cart);
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <h3>السلة فارغة</h3>
+                        <p>لم تقم بإضافة أي منتجات للسلة بعد</p>
+                        <a href="index.html" class="btn-shop">تصفح المنتجات</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let itemsHtml = '<div class="cart-items-container">';
+            let subtotal = 0;
+            
+            items.forEach(([name, item]) => {
+                subtotal += (item.price || 0) * item.qty;
+                itemsHtml += `
+                    <div class="cart-item">
+                        ${item.image ? `<img src="${item.image}" class="cart-item-img" onerror="this.style.display='none'">` : '<div style="width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--ios-label-tertiary);">📦</div>'}
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${name}</div>
+                            <div class="cart-item-price">${(item.price || 0).toLocaleString()} د.ع</div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button class="cart-item-btn minus" onclick="updateQty('${name}', -1)">−</button>
+                            <span class="cart-item-qty">${item.qty}</span>
+                            <button class="cart-item-btn plus" onclick="updateQty('${name}', 1)">+</button>
+                            <button class="cart-item-btn delete" onclick="removeItem('${name}')">🗑</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            itemsHtml += '</div>';
+            
+            const shipping = 5000; // Default shipping
+            const total = subtotal + shipping;
+            
+            container.innerHTML = itemsHtml + `
+                <div class="form-section">
+                    <div class="form-section-title">📍 معلومات التوصيل</div>
+                    
+                    <div class="form-group">
+                        <input type="text" 
+                               id="customerName" 
+                               class="form-input" 
+                               placeholder="الاسم الكامل">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="tel" 
+                               id="customerPhone" 
+                               class="form-input" 
+                               placeholder="رقم الهاتف (مثال: 07800000000)" 
+                               oninput="validatePhone(this)" 
+                               maxlength="11">
+                        <div id="phoneError" class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>يجب أن يكون الرقم 11 رقماً ويبدأ بـ 07</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-select-wrapper">
+                            <select id="province" class="form-select" onchange="updateShipping()">
+                                <option value="" disabled selected>اختر المحافظة</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" 
+                               id="address" 
+                               class="form-input" 
+                               placeholder="العنوان بالتفصيل">
+                    </div>
+                </div>
+
+                <div class="shipping-box">
+                    <div class="shipping-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="shipping-details">
+                        <div class="shipping-label">كلفة التوصيل</div>
+                        <div id="shippingCost" class="shipping-cost">${shipping.toLocaleString()} د.ع</div>
+                    </div>
+                </div>
+
+                <div class="order-summary" id="orderSummary">
+                    <div class="summary-row">
+                        <span>المجموع:</span>
+                        <span>${subtotal.toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>التوصيل:</span>
+                        <span id="shippingDisplay">${shipping.toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>الإجمالي:</span>
+                        <span id="totalAmount">${total.toLocaleString()} د.ع</span>
+                    </div>
+                </div>
+
+                <button class="btn-confirm" onclick="submitOrder()">
+                    <span>إرسال الطلب</span>
+                    <i class="fas fa-check"></i>
+                </button>
+                <a href="index.html" class="btn-cancel">مواصلة التسوق</a>
+            `;
+            
+            setupProvinceSelect();
+        }
+
+        // ===== CART OPERATIONS =====
+        window.updateQty = function(name, change) {
+            if (cart[name]) {
+                cart[name].qty += change;
+                if (cart[name].qty <= 0) {
+                    delete cart[name];
+                }
+                saveCart();
+                renderCart();
+            }
+        };
+
+        window.removeItem = function(name) {
+            if (cart[name]) {
+                delete cart[name];
+                saveCart();
+                renderCart();
+                showToast("تم حذف المنتج");
+            }
+        };
+
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // ===== SHIPPING =====
+        window.updateShipping = function() {
+            const province = document.getElementById('province').value;
+            const shipping = province === 'بابل' ? 3000 : 5000;
+            
+            const shippingEl = document.getElementById('shippingCost');
+            const shippingDisplay = document.getElementById('shippingDisplay');
+            const totalEl = document.getElementById('totalAmount');
+            
+            if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
+            if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
+            
+            const items = Object.entries(cart);
+            let subtotal = 0;
+            items.forEach(([_, item]) => {
+                subtotal += (item.price || 0) * item.qty;
+            });
+            
+            const total = subtotal + shipping;
+            if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
+        };
+
+        // ===== VALIDATION =====
+        window.validatePhone = function(input) {
+            if (!input) return;
+            
+            input.value = input.value.replace(/\D/g, '');
+            if (input.value.length > 11) input.value = input.value.slice(0, 11);
+            
+            if (input.value.length >= 2 && !input.value.startsWith('07')) {
+                input.value = '07' + input.value.slice(2);
+            }
+            
+            const errorEl = document.getElementById('phoneError');
+            const isValid = input.value.length === 11 && input.value.startsWith('07');
+            
+            if (errorEl) {
+                if (isValid) {
+                    input.classList.remove('error');
+                    errorEl.classList.remove('show');
+                } else if (input.value.length > 0) {
+                    input.classList.add('error');
+                    errorEl.classList.add('show');
+                } else {
+                    input.classList.remove('error');
+                    errorEl.classList.remove('show');
+                }
+            }
+        };
+
+        // ===== SUBMIT ORDER =====
+        window.submitOrder = async function() {
+            const items = Object.entries(cart);
+            if (items.length === 0) return;
+            
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const province = document.getElementById('province').value;
+            const address = document.getElementById('address').value.trim();
+            
+            // Validation
+            let hasError = false;
+            
+            if (!name) {
+                document.getElementById('customerName').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('customerName').classList.remove('error');
+            }
+            
+            if (!phone || phone.length !== 11 || !phone.startsWith('07')) {
+                document.getElementById('customerPhone').classList.add('error');
+                document.getElementById('phoneError').classList.add('show');
+                hasError = true;
+            }
+            
+            if (!province) {
+                document.getElementById('province').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('province').classList.remove('error');
+            }
+            
+            if (!address) {
+                document.getElementById('address').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('address').classList.remove('error');
+            }
+            
+            if (hasError) {
+                showToast("يرجى إدخال معلومات التوصيل كاملة", "error");
+                return;
+            }
+            
+            let subtotal = 0;
+            const orderItems = items.map(([key, item]) => {
+                subtotal += (item.price || 0) * item.qty;
+                return {
+                    name: key,
+                    qty: item.qty,
+                    price: item.price
+                };
+            });
+            
+            const shipping = province === 'بابل' ? 3000 : 5000;
+            const totalAmount = subtotal + shipping;
+            
+            const orderData = {
+                customerName: name,
+                customerPhone: phone,
+                province: province,
+                customerAddress: address,
+                items: orderItems,
+                subtotal: subtotal,
+                shipping: shipping,
+                totalAmount: totalAmount,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            try {
+                const newOrderRef = doc(collection(db, "orders"));
+                orderData.id = newOrderRef.id;
+                await setDoc(newOrderRef, orderData);
+                
+                // Send to Telegram
+                let itemsList = orderItems.map(item => `- ${item.name} (العدد: ${item.qty})`).join('\n');
+                const msg = `📦 طلب جديد من السلة:
+👤 ${name}
+📞 ${phone}
+🏛️ ${province}
+📍 ${address}
+
+📦 المنتجات:
+${itemsList}
+💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع`;
+                
+                fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
+                
+                // Clear cart
+                cart = {};
+                saveCart();
+                
+                showSuccessModal();
+            } catch (error) {
+                console.error("Order error:", error);
+                showToast("حدث خطأ أثناء إرسال الطلب", "error");
+            }
+        };
+
+        // ===== SUCCESS MODAL =====
+        function showSuccessModal() {
+            const overlay = document.getElementById('successOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                void overlay.offsetWidth;
+                overlay.classList.add('active');
+            }
+        }
+
+        window.closeSuccessModal = function(e) {
+            if (e && e.target !== e.currentTarget && !e.target.closest('.success-container')) return;
+            goHome();
+        };
+
+        window.goHome = function() {
+            window.location.href = 'index.html';
+        };
+
+        // ===== UTILITY =====
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            
+            toast.className = 'ios-toast';
+            if (type === 'error') toast.classList.add('error');
+            
+            let icon = type === 'error' ? '✕' : '✓';
+            toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+            
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
