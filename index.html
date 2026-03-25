@@ -70,7 +70,7 @@
             width: 100%;
         }
 
-        /* ===== أنيميشنات خفيفة ومعززة بالأداء ===== */
+        /* ===== أنيميشنات خفيفة ===== */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -85,70 +85,87 @@
             50% { opacity: 0.7; transform: scale(0.95); }
         }
 
-        @keyframes bounceIn {
-            0% { transform: scale(0.3) rotate(-45deg); opacity: 0; }
-            60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0); }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
 
-        /* تسريع العناصر المتحركة */
-        .hero-section,
-        .ios-product-card,
-        .hero-btn,
-        .ios-chip,
-        .ad-banner-slide img,
-        .card-image-item img {
-            will-change: transform;
-            transform: translateZ(0);
-            backface-visibility: hidden;
+        /* ===== SKELETON LOADER (الهيكل العظمي الأبيض) ===== */
+        .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 12px;
         }
 
-        /* تقليل إعادة الرسم */
-        .products-grid,
-        .ios-product-card {
-            contain: layout style paint;
+        .skeleton-chip {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 50px;
+            height: 44px;
+            width: 90px;
+            display: inline-block;
+            flex-shrink: 0;
         }
 
-        /* تقليل تعقيد التحولات على الأجهزة الضعيفة */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
+        .skeleton-card {
+            background: #1a3a3a;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            border: 1px solid rgba(255,159,28,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        /* ===== شاشة التحميل ===== */
-        .firebase-loading {
-            position: fixed;
-            inset: 0;
-            background: #0A2F2F;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.3s ease;
+        .skeleton-img {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
         }
-        .firebase-loading.hidden {
-            opacity: 0;
-            pointer-events: none;
+
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+            margin-bottom: 12px;
         }
-        .firebase-loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 159, 28, 0.2);
-            border-top-color: #FF9F1C;
-            border-radius: 50%;
-            margin-bottom: 16px;
-            animation: spin 1s linear infinite;
+
+        .skeleton-text-title {
+            width: 80%;
+            height: 24px;
         }
-        .firebase-loading-text {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-            animation: fadeIn 0.5s ease;
+
+        .skeleton-text-price {
+            width: 50%;
+            height: 28px;
+        }
+
+        .skeleton-badge {
+            width: 60px;
+            height: 24px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-left: 8px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-btn {
+            height: 44px;
+            border-radius: 12px;
+            flex: 1;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .products-grid .skeleton-card {
+            animation: fadeIn 0.4s ease;
         }
 
         /* ===== القسم العلوي (Hero) ===== */
@@ -1082,15 +1099,19 @@
             font-size: 14px;
             margin-top: 20px;
         }
+
+        /* إضافات للهيكل العظمي */
+        .skeleton-banner {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 16px;
+        }
     </style>
 </head>
 <body>
-
-    <!-- شاشة تحميل Firebase -->
-    <div id="firebaseLoading" class="firebase-loading">
-        <div class="firebase-loading-spinner"></div>
-        <div class="firebase-loading-text">جاري تحميل المتجر...</div>
-    </div>
 
     <!-- إشعار منتصف الشاشة -->
     <div id="toast" class="ios-toast"></div>
@@ -1117,12 +1138,12 @@
         </div>
     </section>
 
-    <!-- قسم البانر الإعلاني (16:9) -->
+    <!-- قسم البانر الإعلاني (يظهر فيه سكلتون مؤقت) -->
     <section class="ad-banner-section" id="adBannerSection">
         <div class="ad-banner-container">
-            <div class="ad-banner-slider" id="adBannerSlider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)">
-                <div class="ad-banner-slide active" id="defaultSlide">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Crect fill='%230A2F2F' width='1600' height='900'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23FF9F1C' font-size='48' font-family='Cairo'%3Eجاري تحميل الإعلانات...%3C/text%3E%3C/svg%3E" alt="تحميل" loading="lazy">
+            <div class="ad-banner-slider" id="adBannerSlider">
+                <div class="ad-banner-slide active">
+                    <div class="skeleton-banner"></div>
                 </div>
             </div>
             <div class="ad-progress-bar" id="adProgressBar" style="width: 0%;"></div>
@@ -1165,18 +1186,100 @@
         </div>
     </div>
 
-    <!-- أشرطة التصفية (الفئات والفئات الفرعية) -->
+    <!-- أشرطة التصفية (هيكل عظمي في البداية) -->
     <div class="filter-section">
-        <div class="ios-filter-bar" id="filterBar"></div>
+        <div class="ios-filter-bar" id="filterBar">
+            <!-- سكلتون لأزرار الفئات -->
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip"></div>
+        </div>
         <div class="subcategory-filter-bar" id="subcategoryBar" style="display: none;"></div>
     </div>
 
-    <!-- المحتوى الرئيسي: شبكة المنتجات -->
+    <!-- المحتوى الرئيسي: شبكة المنتجات (هيكل عظمي) -->
     <main>
         <div id="mainGrid" class="products-grid">
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
-                <p>جاري تحميل المنتجات...</p>
+            <!-- 6 بطاقات سكلتون -->
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div style="padding: 18px;">
+                    <div class="skeleton-text skeleton-text-title"></div>
+                    <div class="skeleton-text" style="width: 40%;"></div>
+                    <div class="skeleton-text skeleton-text-price"></div>
+                    <div class="skeleton-text" style="width: 100%;"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <div class="skeleton-btn"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div style="padding: 18px;">
+                    <div class="skeleton-text skeleton-text-title"></div>
+                    <div class="skeleton-text" style="width: 40%;"></div>
+                    <div class="skeleton-text skeleton-text-price"></div>
+                    <div class="skeleton-text" style="width: 100%;"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <div class="skeleton-btn"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div style="padding: 18px;">
+                    <div class="skeleton-text skeleton-text-title"></div>
+                    <div class="skeleton-text" style="width: 40%;"></div>
+                    <div class="skeleton-text skeleton-text-price"></div>
+                    <div class="skeleton-text" style="width: 100%;"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <div class="skeleton-btn"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div style="padding: 18px;">
+                    <div class="skeleton-text skeleton-text-title"></div>
+                    <div class="skeleton-text" style="width: 40%;"></div>
+                    <div class="skeleton-text skeleton-text-price"></div>
+                    <div class="skeleton-text" style="width: 100%;"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <div class="skeleton-btn"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div style="padding: 18px;">
+                    <div class="skeleton-text skeleton-text-title"></div>
+                    <div class="skeleton-text" style="width: 40%;"></div>
+                    <div class="skeleton-text skeleton-text-price"></div>
+                    <div class="skeleton-text" style="width: 100%;"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <div class="skeleton-btn"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div style="padding: 18px;">
+                    <div class="skeleton-text skeleton-text-title"></div>
+                    <div class="skeleton-text" style="width: 40%;"></div>
+                    <div class="skeleton-text skeleton-text-price"></div>
+                    <div class="skeleton-text" style="width: 100%;"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <div class="skeleton-btn"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -1236,6 +1339,7 @@
         let currentSubcategory = 'all';
         let isOnline = false;
         let toastTimeout;
+        let dataLoaded = false; // لمنع إعادة الهيكل العظمي بعد التحميل
 
         const updateStickyHeights = () => {
             const header = document.querySelector('.header-section');
@@ -1269,7 +1373,6 @@
         async function initApp() {
             setupRealtimeListeners();
             trackVisitor();
-            initAdBanner();
             
             window.addEventListener('online', () => updateSyncStatus(true));
             window.addEventListener('offline', () => updateSyncStatus(false));
@@ -1296,14 +1399,6 @@
             }, { passive: false });
         }
 
-        function hideFirebaseLoading() {
-            const loading = document.getElementById('firebaseLoading');
-            if (loading) {
-                loading.classList.add('hidden');
-                setTimeout(() => loading.style.display = 'none', 300);
-            }
-        }
-
         function setupRealtimeListeners() {
             const productsQuery = query(productsRef, orderBy("createdAt", "desc"));
             onSnapshot(productsQuery, (snapshot) => {
@@ -1316,15 +1411,19 @@
                 
                 if (JSON.stringify(products) !== JSON.stringify(newProducts)) {
                     products = newProducts;
-                    renderProducts(currentCategory, currentSubcategory, currentSearchQuery);
+                    if (dataLoaded) {
+                        renderProducts(currentCategory, currentSubcategory, currentSearchQuery);
+                    } else {
+                        // أول مرة يتم تحميل البيانات
+                        renderProducts(currentCategory, currentSubcategory, currentSearchQuery);
+                        dataLoaded = true;
+                    }
                 }
                 
-                hideFirebaseLoading();
                 updateSyncStatus(true);
             }, (error) => {
                 console.error("Products error:", error);
                 updateSyncStatus(false);
-                hideFirebaseLoading();
             });
 
             onSnapshot(categoriesRef, (snapshot) => {
@@ -1335,7 +1434,6 @@
                         if (!newCategories.includes(catName)) newCategories.push(catName);
                     }
                 });
-                // Insert the virtual discount category after "الكل"
                 const discountCategoryIndex = 1;
                 if (!newCategories.includes("عروض وخصومات")) {
                     newCategories.splice(discountCategoryIndex, 0, "عروض وخصومات");
@@ -1645,7 +1743,6 @@
             
             let filtered = [];
             
-            // Special handling for discount category (virtual)
             if (filter === "عروض وخصومات") {
                 filtered = products.filter(p => p.discountIQD && p.discountIQD > 0 && p.discountIQD < (p.priceIQD || 0));
             } else {
@@ -1691,7 +1788,6 @@
                 const needsToggle = descText.length > 50;
                 const isDisplayOnly = p.displayOnly === true;
                 
-                // Discount logic
                 const hasDiscount = p.discountIQD && p.discountIQD > 0 && p.discountIQD < (p.priceIQD || 0);
                 const finalPriceIQD = hasDiscount ? p.discountIQD : p.priceIQD;
                 const finalPriceUSD = (p.discountUSD && p.discountUSD < p.priceUSD) ? p.discountUSD : p.priceUSD;
@@ -1882,9 +1978,6 @@
             btn.style.color = 'white';
             btn.style.boxShadow = '0 4px 10px rgba(255,159,28,0.3)';
             
-            // تم إزالة السطر الذي كان يقوم بالتمرير إلى أعلى الصفحة
-            // window.scrollTo({ top: 0, behavior: 'smooth' });
-            
             if (category === "عروض وخصومات") {
                 const subBar = document.getElementById('subcategoryBar');
                 if (subBar) subBar.style.display = 'none';
@@ -1983,7 +2076,9 @@
             }, 2500);
         }
 
+        // بدء التطبيق بعد تحميل الصفحة
         initApp();
+        initAdBanner();
     </script>
 </body>
 </html>
