@@ -33,7 +33,6 @@
             --ios-spring: cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* تحسين أداء الرندر */
         * {
             margin: 0;
             padding: 0;
@@ -733,6 +732,13 @@
         .badge-subcat {
             background: rgba(90,154,154,0.3);
             color: #5A9A9A;
+        }
+
+        /* شارة التوصيل الداخلي فقط (تظهر فقط للمنتجات ذات التوصيل الداخلي) */
+        .badge-internal {
+            background: rgba(231, 29, 54, 0.2);
+            color: #E71D36;
+            border: 1px solid rgba(231, 29, 54, 0.3);
         }
 
         /* مربع الخصم الجديد */
@@ -1794,6 +1800,11 @@
                 const showPercentSquare = p.showDiscountPercent && hasDiscount;
                 const discountPercent = p.discountPercent || 0;
 
+                // شارة التوصيل: تظهر فقط للمنتجات ذات التوصيل الداخلي (لا تظهر للمنتجات العامة)
+                const shippingBadge = p.shippingType === 'internal' 
+                    ? '<span class="badge-mini badge-internal">🚚 توصيل داخلي فقط</span>' 
+                    : '';
+
                 let imagesHtml = '';
                 if (hasImages) {
                     if (isDisplayOnly) {
@@ -1881,7 +1892,7 @@
                     
                     actionsHtml = `
                         <div class="product-actions-full">
-                            <button class="btn-action-full btn-cart-full" onclick="event.stopPropagation(); addToCart('${p.name}', ${finalPriceIQD || 0}, '${p.images?.[0] || ''}')" style="cursor: pointer;">
+                            <button class="btn-action-full btn-cart-full" onclick="event.stopPropagation(); addToCart('${p.id}', '${p.name}', ${finalPriceIQD || 0}, '${p.images?.[0] || ''}')" style="cursor: pointer;">
                                 <span>🛒</span>
                                 <span>للسلة</span>
                             </button>
@@ -1903,6 +1914,7 @@
                                     ${p.cat ? `<span class="badge-mini badge-cat">${p.cat}</span>` : ''}
                                     ${p.subCat ? `<span class="badge-mini badge-subcat">${p.subCat}</span>` : ''}
                                     ${p.itemId ? `<span class="badge-mini badge-itemid" style="background: rgba(46, 196, 182, 0.3); color: #2EC4B6; border: 1px solid rgba(46, 196, 182, 0.5);">معرف: ${p.itemId}</span>` : ''}
+                                    ${shippingBadge}
                                 </div>
                                 <h3 class="product-name-full">${p.name}</h3>
                             </div>
@@ -1950,12 +1962,12 @@
             }
         };
 
-        window.addToCart = function(name, price, image = '') {
+        window.addToCart = function(productId, name, price, image = '') {
             let cart = JSON.parse(localStorage.getItem('cart') || '{}');
-            if (cart[name]) {
-                cart[name].qty++;
+            if (cart[productId]) {
+                cart[productId].qty++;
             } else {
-                cart[name] = { price, qty: 1, image };
+                cart[productId] = { id: productId, name, price, qty: 1, image };
             }
             localStorage.setItem('cart', JSON.stringify(cart));
             loadCartCount();
