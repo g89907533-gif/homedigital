@@ -499,6 +499,12 @@
             color: var(--ios-green-neon);
         }
 
+        .shipping-type {
+            font-size: 13px;
+            color: var(--ios-label-secondary);
+            margin-top: 5px;
+        }
+
         /* Order Summary */
         .order-summary {
             background: linear-gradient(135deg, rgba(46, 196, 182, 0.15) 0%, rgba(46, 196, 182, 0.05) 100%);
@@ -790,7 +796,8 @@
             getFirestore, 
             collection, 
             doc, 
-            setDoc
+            setDoc,
+            getDoc
         } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -816,29 +823,65 @@
         ];
 
         let cart = {};
+        let cartProducts = {}; // تخزين بيانات المنتجات (id -> full product data)
+        let hasInternalProduct = false;
+        let isLoading = true;
 
         // ===== INITIALIZATION =====
-        function init() {
-            loadCart();
-            setupProvinceSelect();
+        async function init() {
+            await loadCart();
         }
 
-        function loadCart() {
-            cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        async function loadCart() {
+            const rawCart = JSON.parse(localStorage.getItem('cart') || '{}');
+            cart = {};
+            cartProducts = {};
+            hasInternalProduct = false;
+            
+            const productIds = Object.keys(rawCart);
+            if (productIds.length === 0) {
+                isLoading = false;
+                renderCart();
+                return;
+            }
+            
+            // Fetch product details for each item in cart
+            for (const id of productIds) {
+                try {
+                    const productDoc = await getDoc(doc(db, "products", id));
+                    if (productDoc.exists()) {
+                        const productData = productDoc.data();
+                        cartProducts[id] = productData;
+                        if (productData.shippingType === 'internal') {
+                            hasInternalProduct = true;
+                        }
+                        cart[id] = {
+                            id: id,
+                            name: productData.name,
+                            price: productData.discountIQD && productData.discountIQD > 0 && productData.discountIQD < (productData.priceIQD || 0) 
+                                ? productData.discountIQD 
+                                : (productData.priceIQD || 0),
+                            qty: rawCart[id].qty,
+                            image: productData.images?.[0] || ''
+                        };
+                    } else {
+                        // Product no longer exists, remove from cart
+                        delete rawCart[id];
+                    }
+                } catch (error) {
+                    console.error("Error fetching product:", error);
+                }
+            }
+            
+            // Save updated cart (removed missing products)
+            localStorage.setItem('cart', JSON.stringify(rawCart));
+            isLoading = false;
             renderCart();
         }
 
-        function setupProvinceSelect() {
-            const select = document.getElementById('province');
-            if (!select) return;
-            const options = IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
-            select.innerHTML = '<option value="" disabled selected>اختر المحافظة</option>' + options;
-        }
-
-        // ===== RENDER CART =====
         function renderCart() {
             const container = document.getElementById('cartContent');
-            const items = Object.entries(cart);
+            const items = Object.values(cart);
             
             if (items.length === 0) {
                 container.innerHTML = `
@@ -855,20 +898,20 @@
             let itemsHtml = '<div class="cart-items-container">';
             let subtotal = 0;
             
-            items.forEach(([name, item]) => {
+            items.forEach((item) => {
                 subtotal += (item.price || 0) * item.qty;
                 itemsHtml += `
                     <div class="cart-item">
                         ${item.image ? `<img src="${item.image}" class="cart-item-img" onerror="this.style.display='none'">` : '<div style="width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--ios-label-tertiary);">📦</div>'}
                         <div class="cart-item-info">
-                            <div class="cart-item-name">${name}</div>
+                            <div class="cart-item-name">${item.name}</div>
                             <div class="cart-item-price">${(item.price || 0).toLocaleString()} د.ع</div>
                         </div>
                         <div class="cart-item-controls">
-                            <button class="cart-item-btn minus" onclick="updateQty('${name}', -1)">−</button>
+                            <button class="cart-item-btn minus" onclick="updateQty('${item.id}', -1)">−</button>
                             <span class="cart-item-qty">${item.qty}</span>
-                            <button class="cart-item-btn plus" onclick="updateQty('${name}', 1)">+</button>
-                            <button class="cart-item-btn delete" onclick="removeItem('${name}')">🗑</button>
+                            <button class="cart-item-btn plus" onclick="updateQty('${item.id}', 1)">+</button>
+                            <button class="cart-item-btn delete" onclick="removeItem('${item.id}')">🗑</button>
                         </div>
                     </div>
                 `;
@@ -876,7 +919,18 @@
             
             itemsHtml += '</div>';
             
-            const shipping = 5000; // Default shipping
+            // Determine shipping based on product types
+            let shipping = hasInternalProduct ? 3000 : 5000;
+            let shippingTypeText = hasInternalProduct ? 'توصيل داخلي (بابل فقط)' : 'سيتم التحديد بعد اختيار المحافظة';
+            let provinceOptions = '';
+            
+            if (hasInternalProduct) {
+                provinceOptions = '<option value="بابل">بابل</option>';
+            } else {
+                provinceOptions = '<option value="" disabled selected>اختر المحافظة</option>' +
+                    IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            
             const total = subtotal + shipping;
             
             container.innerHTML = itemsHtml + `
@@ -906,7 +960,7 @@
                     <div class="form-group">
                         <div class="form-select-wrapper">
                             <select id="province" class="form-select" onchange="updateShipping()">
-                                <option value="" disabled selected>اختر المحافظة</option>
+                                ${provinceOptions}
                             </select>
                         </div>
                     </div>
@@ -931,6 +985,7 @@
                     <div class="shipping-details">
                         <div class="shipping-label">كلفة التوصيل</div>
                         <div id="shippingCost" class="shipping-cost">${shipping.toLocaleString()} د.ع</div>
+                        <div id="shippingType" class="shipping-type">${shippingTypeText}</div>
                     </div>
                 </div>
 
@@ -956,52 +1011,92 @@
                 <a href="index.html" class="btn-cancel">مواصلة التسوق</a>
             `;
             
-            setupProvinceSelect();
+            // If internal products exist, set the province to Babylon and disable it
+            if (hasInternalProduct) {
+                const provinceSelect = document.getElementById('province');
+                if (provinceSelect) {
+                    provinceSelect.value = 'بابل';
+                    provinceSelect.disabled = true;
+                }
+                // Update shipping info
+                updateShipping();
+            }
         }
 
         // ===== CART OPERATIONS =====
-        window.updateQty = function(name, change) {
-            if (cart[name]) {
-                cart[name].qty += change;
-                if (cart[name].qty <= 0) {
-                    delete cart[name];
+        window.updateQty = async function(id, change) {
+            let rawCart = JSON.parse(localStorage.getItem('cart') || '{}');
+            if (rawCart[id]) {
+                rawCart[id].qty += change;
+                if (rawCart[id].qty <= 0) {
+                    delete rawCart[id];
                 }
-                saveCart();
-                renderCart();
+                localStorage.setItem('cart', JSON.stringify(rawCart));
+                await loadCart(); // Reload cart to reflect changes
             }
         };
 
-        window.removeItem = function(name) {
-            if (cart[name]) {
-                delete cart[name];
-                saveCart();
-                renderCart();
+        window.removeItem = async function(id) {
+            let rawCart = JSON.parse(localStorage.getItem('cart') || '{}');
+            if (rawCart[id]) {
+                delete rawCart[id];
+                localStorage.setItem('cart', JSON.stringify(rawCart));
+                await loadCart();
                 showToast("تم حذف المنتج");
             }
         };
 
-        function saveCart() {
-            localStorage.setItem('cart', JSON.stringify(cart));
-        }
-
         // ===== SHIPPING =====
         window.updateShipping = function() {
+            if (hasInternalProduct) {
+                // Shipping fixed at 3000
+                const shipping = 3000;
+                const typeText = 'توصيل داخلي (بابل فقط)';
+                
+                const shippingEl = document.getElementById('shippingCost');
+                const shippingDisplay = document.getElementById('shippingDisplay');
+                const totalEl = document.getElementById('totalAmount');
+                const typeEl = document.getElementById('shippingType');
+                
+                if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
+                if (typeEl) typeEl.innerText = typeText;
+                if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
+                
+                let subtotal = 0;
+                Object.values(cart).forEach(item => {
+                    subtotal += (item.price || 0) * item.qty;
+                });
+                const total = subtotal + shipping;
+                if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
+                return;
+            }
+            
+            // All products are general
             const province = document.getElementById('province').value;
-            const shipping = province === 'بابل' ? 3000 : 5000;
+            let shipping = 5000;
+            let typeText = 'توصيل عام (جميع المحافظات)';
+            
+            if (province === 'بابل') {
+                shipping = 3000;
+                typeText = 'توصيل داخلي (بابل فقط)';
+            } else if (province && province !== '') {
+                shipping = 5000;
+                typeText = 'توصيل عام (باقي المحافظات)';
+            }
             
             const shippingEl = document.getElementById('shippingCost');
             const shippingDisplay = document.getElementById('shippingDisplay');
             const totalEl = document.getElementById('totalAmount');
+            const typeEl = document.getElementById('shippingType');
             
             if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
+            if (typeEl) typeEl.innerText = typeText;
             if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
             
-            const items = Object.entries(cart);
             let subtotal = 0;
-            items.forEach(([_, item]) => {
+            Object.values(cart).forEach(item => {
                 subtotal += (item.price || 0) * item.qty;
             });
-            
             const total = subtotal + shipping;
             if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
         };
@@ -1036,7 +1131,7 @@
 
         // ===== SUBMIT ORDER =====
         window.submitOrder = async function() {
-            const items = Object.entries(cart);
+            const items = Object.values(cart);
             if (items.length === 0) return;
             
             const name = document.getElementById('customerName').value.trim();
@@ -1080,17 +1175,23 @@
                 return;
             }
             
+            // Check province compatibility with internal products
+            if (hasInternalProduct && province !== 'بابل') {
+                showToast("السلة تحتوي على منتج يُشحن فقط داخل محافظة بابل", "error");
+                return;
+            }
+            
             let subtotal = 0;
-            const orderItems = items.map(([key, item]) => {
+            const orderItems = items.map(item => {
                 subtotal += (item.price || 0) * item.qty;
                 return {
-                    name: key,
+                    name: item.name,
                     qty: item.qty,
                     price: item.price
                 };
             });
             
-            const shipping = province === 'بابل' ? 3000 : 5000;
+            let shipping = hasInternalProduct ? 3000 : (province === 'بابل' ? 3000 : 5000);
             const totalAmount = subtotal + shipping;
             
             const orderData = {
@@ -1128,8 +1229,7 @@ ${itemsList}
                 fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
                 
                 // Clear cart
-                cart = {};
-                saveCart();
+                localStorage.removeItem('cart');
                 
                 showSuccessModal();
             } catch (error) {
