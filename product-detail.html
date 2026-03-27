@@ -381,6 +381,41 @@
             color: var(--ios-label-tertiary);
         }
 
+        /* Shipping Info Section */
+        .shipping-info-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin: 8px 0;
+        }
+
+        .shipping-info-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ios-orange);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shipping-info-text {
+            font-size: 14px;
+            color: var(--ios-label-secondary);
+            line-height: 1.5;
+        }
+
+        .shipping-info-text.internal {
+            color: #E71D36;
+        }
+
+        .shipping-info-text.general {
+            color: #2EC4B6;
+        }
+
         .description-section {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
@@ -918,6 +953,34 @@
                 ${currentProduct.itemId ? `<div class="meta-badge">🔖 معرف: ${currentProduct.itemId}</div>` : ''}
             `;
 
+            // Shipping info based on shippingType
+            let shippingHtml = '';
+            if (currentProduct.shippingType === 'internal') {
+                shippingHtml = `
+                    <div class="shipping-info-section">
+                        <div class="shipping-info-title">
+                            <i class="fas fa-truck"></i>
+                            معلومات التوصيل
+                        </div>
+                        <div class="shipping-info-text internal">
+                            <i class="fas fa-map-marker-alt"></i> هذا المنتج يُشحن فقط داخل محافظة بابل.
+                        </div>
+                    </div>
+                `;
+            } else if (currentProduct.shippingType === 'general') {
+                shippingHtml = `
+                    <div class="shipping-info-section">
+                        <div class="shipping-info-title">
+                            <i class="fas fa-truck"></i>
+                            معلومات التوصيل
+                        </div>
+                        <div class="shipping-info-text general">
+                            <i class="fas fa-globe"></i> هذا المنتج يُشحن إلى جميع محافظات العراق.
+                        </div>
+                    </div>
+                `;
+            }
+
             // بناء المحتوى حسب نوع المنتج (عرض فقط أم لا)
             let priceHtml = '';
             let quantityActionsHtml = '';
@@ -972,7 +1035,7 @@
                             </div>
                         </div>
                         <div class="action-buttons">
-                            <button class="btn-action btn-cart" onclick="addToCart('${currentProduct.name}', ${effectivePrice}, '${images[0] || ''}')">
+                            <button class="btn-action btn-cart" onclick="addToCart('${currentProduct.id}', '${currentProduct.name}', ${effectivePrice}, '${images[0] || ''}')">
                                 <span>🛒</span> <span>أضف للسلة</span>
                             </button>
                             <a href="buy.html?id=${currentProduct.id}" class="btn-action btn-buy">
@@ -1006,6 +1069,8 @@
                         </div>
 
                         ${priceHtml}
+
+                        ${shippingHtml}
 
                         ${currentProduct.desc ? `
                             <div class="description-section">
@@ -1079,12 +1144,12 @@
         };
 
         // ===== CART FUNCTIONS =====
-        window.addToCart = function(name, price, image = '') {
+        window.addToCart = function(productId, name, price, image = '') {
             let cart = JSON.parse(localStorage.getItem('cart') || '{}');
-            if (cart[name]) {
-                cart[name].qty++;
+            if (cart[productId]) {
+                cart[productId].qty++;
             } else {
-                cart[name] = { price, qty: 1, image };
+                cart[productId] = { id: productId, name, price, qty: 1, image };
             }
             localStorage.setItem('cart', JSON.stringify(cart));
             loadCartCount();
