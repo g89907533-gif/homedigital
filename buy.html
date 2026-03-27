@@ -408,6 +408,12 @@
             color: var(--ios-green-neon);
         }
 
+        .shipping-type {
+            font-size: 13px;
+            color: var(--ios-label-secondary);
+            margin-top: 5px;
+        }
+
         /* Form Section */
         .form-section {
             background: var(--glass-bg);
@@ -974,10 +980,10 @@
         let quantity = 1;
         let customFieldAnswer = ''; // لتخزين إجابة السؤال المخصص
         let effectivePrice = 0; // السعر الفعلي بعد الخصم
+        let productShippingType = 'general'; // 'internal' or 'general'
 
         // ===== INITIALIZATION =====
         async function init() {
-            setupProvinceSelect();
             loadCartCount();
             
             const urlParams = new URLSearchParams(window.location.search);
@@ -994,8 +1000,20 @@
 
         function setupProvinceSelect() {
             const select = document.getElementById('province');
-            const options = IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
-            select.innerHTML = '<option value="" disabled selected>اختر المحافظة</option>' + options;
+            let options = '';
+            
+            if (productShippingType === 'internal') {
+                // Only Babylon is available
+                options = '<option value="بابل">بابل</option>';
+                select.innerHTML = options;
+                select.value = 'بابل';
+                updateShipping(); // تحديث التوصيل
+            } else {
+                // All provinces
+                options = '<option value="" disabled selected>اختر المحافظة</option>' +
+                    IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
+                select.innerHTML = options;
+            }
         }
 
         async function loadProduct(productId) {
@@ -1007,11 +1025,14 @@
                 }
                 
                 currentProduct = { id: productDoc.id, ...productDoc.data() };
+                productShippingType = currentProduct.shippingType || 'general';
+                
                 // حساب السعر الفعلي
                 const hasDiscount = currentProduct.discountIQD && currentProduct.discountIQD > 0 && currentProduct.discountIQD < (currentProduct.priceIQD || 0);
                 effectivePrice = hasDiscount ? currentProduct.discountIQD : (currentProduct.priceIQD || 0);
                 renderProduct();
                 renderCustomField(); // عرض السؤال المخصص إن وجد
+                setupProvinceSelect(); // إعداد المحافظات حسب نوع التوصيل
                 updateSummary();
             } catch (error) {
                 console.error("Error loading product:", error);
@@ -1067,6 +1088,7 @@
                     <div class="shipping-details">
                         <div class="shipping-label">كلفة التوصيل</div>
                         <div id="shippingCost" class="shipping-cost">5,000 د.ع</div>
+                        <div id="shippingType" class="shipping-type">سيتم التحديد بعد اختيار المحافظة</div>
                     </div>
                 </div>
             `;
@@ -1142,10 +1164,27 @@
 
         window.updateShipping = function() {
             const province = document.getElementById('province').value;
-            const cost = province === 'بابل' ? 3000 : 5000;
+            let cost = 5000;
+            let typeText = 'توصيل عام (جميع المحافظات)';
+            
+            if (productShippingType === 'internal') {
+                // المنتج داخلي فقط: يجب أن تكون بابل
+                cost = 3000;
+                typeText = 'توصيل داخلي (بابل فقط)';
+            } else {
+                if (province === 'بابل') {
+                    cost = 3000;
+                    typeText = 'توصيل داخلي (بابل فقط)';
+                } else if (province) {
+                    cost = 5000;
+                    typeText = 'توصيل عام (باقي المحافظات)';
+                }
+            }
             
             const shippingEl = document.getElementById('shippingCost');
+            const typeEl = document.getElementById('shippingType');
             if (shippingEl) shippingEl.innerText = cost.toLocaleString() + ' د.ع';
+            if (typeEl) typeEl.innerText = typeText;
             
             updateSummary();
         };
@@ -1154,7 +1193,15 @@
             if (!currentProduct) return;
             
             const province = document.getElementById('province').value;
-            const shipping = province === 'بابل' ? 3000 : 5000;
+            let shipping = 5000;
+            if (productShippingType === 'internal') {
+                shipping = 3000;
+            } else if (province === 'بابل') {
+                shipping = 3000;
+            } else {
+                shipping = 5000;
+            }
+            
             const productTotal = effectivePrice * quantity;
             const total = productTotal + shipping;
             
@@ -1265,7 +1312,21 @@
                 return;
             }
             
-            const shipping = province === 'بابل' ? 3000 : 5000;
+            // التحقق من نوع التوصيل
+            if (productShippingType === 'internal' && province !== 'بابل') {
+                showToast("هذا المنتج يُشحن فقط داخل محافظة بابل", "error");
+                return;
+            }
+            
+            let shipping = 5000;
+            if (productShippingType === 'internal') {
+                shipping = 3000;
+            } else if (province === 'بابل') {
+                shipping = 3000;
+            } else {
+                shipping = 5000;
+            }
+            
             const productTotal = effectivePrice * quantity;
             const totalAmount = productTotal + shipping;
             
@@ -1384,3 +1445,4 @@ ${notes ? `📝 ملاحظات: ${notes}\n` : ''}
         init();
     </script>
 </body>
+</html>
