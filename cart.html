@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* نفس الأنماط السابقة مع إضافة تنسيق للخصومات (مطابق لـ buy.html) */
+        /* جميع الأنماط الأصلية محفوظة كما هي، أضفنا تنسيقاً لحقل الكوبون */
         :root {
             --ios-bg-primary: #0A2F2F;
             --ios-bg-secondary: rgba(16, 55, 55, 0.85);
@@ -390,7 +390,6 @@
             box-shadow: 0 0 0 4px rgba(231, 29, 54, 0.1);
         }
 
-        /* تحسين القائمة المنسدلة للمحافظات (مطابق لـ buy.html) */
         .form-select-wrapper {
             position: relative;
         }
@@ -456,6 +455,35 @@
 
         .form-error.show {
             display: flex;
+        }
+
+        /* Coupon Field */
+        .coupon-wrapper {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .coupon-wrapper input {
+            flex: 1;
+        }
+        .apply-coupon-btn {
+            width: auto;
+            padding: 12px 24px;
+            background: rgba(247, 249, 249, 0.1);
+            color: var(--ios-label-primary);
+            border: var(--glass-border);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .apply-coupon-btn:hover {
+            background: rgba(247, 249, 249, 0.2);
+        }
+        .coupon-message {
+            font-size: 13px;
+            margin-top: 8px;
         }
 
         /* Shipping Info */
@@ -797,7 +825,8 @@
             collection, 
             doc, 
             setDoc,
-            getDoc
+            getDoc,
+            getDocs
         } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -823,9 +852,13 @@
         ];
 
         let cart = {};
-        let cartProducts = {}; // تخزين بيانات المنتجات (id -> full product data)
+        let cartProducts = {};
         let hasInternalProduct = false;
         let isLoading = true;
+
+        // Coupon related
+        let appliedCoupon = null;        // { id, code, discountPercent, minOrderAmount, usageLimit, usedCount }
+        let couponDiscountAmount = 0;
 
         // ===== INITIALIZATION =====
         async function init() {
@@ -879,6 +912,77 @@
             renderCart();
         }
 
+        function recalcTotal() {
+            let subtotal = 0;
+            Object.values(cart).forEach(item => {
+                subtotal += (item.price || 0) * item.qty;
+            });
+
+            let shipping = hasInternalProduct ? 3000 : (document.getElementById('province')?.value === 'بابل' ? 3000 : 5000);
+            let discount = 0;
+
+            if (appliedCoupon) {
+                if (subtotal >= appliedCoupon.minOrderAmount) {
+                    discount = Math.floor(subtotal * appliedCoupon.discountPercent / 100);
+                    couponDiscountAmount = discount;
+                    document.getElementById('discountRow').style.display = 'flex';
+                    document.getElementById('summaryDiscount').innerHTML = `- ${discount.toLocaleString()} د.ع`;
+                } else {
+                    // Coupon no longer valid
+                    appliedCoupon = null;
+                    couponDiscountAmount = 0;
+                    document.getElementById('discountRow').style.display = 'none';
+                    const msgDiv = document.getElementById('couponMessage');
+                    if (msgDiv) msgDiv.innerHTML = '<span style="color: #E71D36;">⚠️ الكوبون غير صالح (الحد الأدنى للطلب لم يتحقق)</span>';
+                    document.getElementById('couponCode').value = '';
+                }
+            } else {
+                couponDiscountAmount = 0;
+                document.getElementById('discountRow').style.display = 'none';
+            }
+
+            const total = subtotal + shipping - discount;
+            document.getElementById('summarySubtotal').innerText = subtotal.toLocaleString() + ' د.ع';
+            document.getElementById('summaryShipping').innerText = shipping.toLocaleString() + ' د.ع';
+            document.getElementById('summaryTotal').innerText = total.toLocaleString() + ' د.ع';
+            return { subtotal, shipping, discount, total };
+        }
+
+        window.applyCoupon = async function() {
+            const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            if (!code) {
+                showToast("أدخل كود الخصم", "error");
+                return;
+            }
+            const subtotal = Object.values(cart).reduce((s, i) => s + (i.price || 0) * i.qty, 0);
+            try {
+                const querySnapshot = await getDocs(collection(db, "coupons"));
+                let couponData = null;
+                querySnapshot.forEach(doc => {
+                    if (doc.data().code === code) couponData = { id: doc.id, ...doc.data() };
+                });
+                if (!couponData) {
+                    showToast("❌ كود غير صحيح", "error");
+                    return;
+                }
+                if (couponData.usedCount >= couponData.usageLimit) {
+                    showToast("❌ هذا الكود انتهت صلاحيته (استُخدم العدد المسموح)", "error");
+                    return;
+                }
+                if (subtotal < couponData.minOrderAmount) {
+                    showToast(`⚠️ الحد الأدنى للطلب لهذا الكود هو ${couponData.minOrderAmount.toLocaleString()} د.ع`, "error");
+                    return;
+                }
+                appliedCoupon = couponData;
+                couponDiscountAmount = Math.floor(subtotal * couponData.discountPercent / 100);
+                document.getElementById('couponMessage').innerHTML = `<span style="color: #2EC4B6;">✓ تم تطبيق الخصم ${couponData.discountPercent}%</span>`;
+                recalcTotal();
+            } catch (error) {
+                console.error(error);
+                showToast("حدث خطأ أثناء التحقق", "error");
+            }
+        };
+
         function renderCart() {
             const container = document.getElementById('cartContent');
             const items = Object.values(cart);
@@ -896,10 +1000,7 @@
             }
             
             let itemsHtml = '<div class="cart-items-container">';
-            let subtotal = 0;
-            
             items.forEach((item) => {
-                subtotal += (item.price || 0) * item.qty;
                 itemsHtml += `
                     <div class="cart-item">
                         ${item.image ? `<img src="${item.image}" class="cart-item-img" onerror="this.style.display='none'">` : '<div style="width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--ios-label-tertiary);">📦</div>'}
@@ -916,7 +1017,6 @@
                     </div>
                 `;
             });
-            
             itemsHtml += '</div>';
             
             // Determine shipping based on product types
@@ -931,11 +1031,22 @@
                     IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
             }
             
-            const total = subtotal + shipping;
+            // Calculate subtotal for initial display
+            const subtotal = items.reduce((s, i) => s + (i.price || 0) * i.qty, 0);
             
             container.innerHTML = itemsHtml + `
                 <div class="form-section">
                     <div class="form-section-title">📍 معلومات التوصيل</div>
+
+                    <!-- Coupon field -->
+                    <div class="form-group">
+                        <label class="form-label">🏷️ كود الخصم (اختياري)</label>
+                        <div class="coupon-wrapper">
+                            <input type="text" id="couponCode" class="form-input" placeholder="أدخل كود الخصم">
+                            <button class="apply-coupon-btn" onclick="applyCoupon()">تطبيق</button>
+                        </div>
+                        <div id="couponMessage" class="coupon-message"></div>
+                    </div>
                     
                     <div class="form-group">
                         <input type="text" 
@@ -992,15 +1103,19 @@
                 <div class="order-summary" id="orderSummary">
                     <div class="summary-row">
                         <span>المجموع:</span>
-                        <span>${subtotal.toLocaleString()} د.ع</span>
+                        <span id="summarySubtotal">${subtotal.toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="summary-row" id="discountRow" style="display: none;">
+                        <span>خصم الكوبون:</span>
+                        <span id="summaryDiscount">- 0 د.ع</span>
                     </div>
                     <div class="summary-row">
                         <span>التوصيل:</span>
-                        <span id="shippingDisplay">${shipping.toLocaleString()} د.ع</span>
+                        <span id="summaryShipping">${shipping.toLocaleString()} د.ع</span>
                     </div>
                     <div class="summary-row">
                         <span>الإجمالي:</span>
-                        <span id="totalAmount">${total.toLocaleString()} د.ع</span>
+                        <span id="summaryTotal">${(subtotal + shipping).toLocaleString()} د.ع</span>
                     </div>
                 </div>
 
@@ -1018,9 +1133,11 @@
                     provinceSelect.value = 'بابل';
                     provinceSelect.disabled = true;
                 }
-                // Update shipping info
                 updateShipping();
             }
+            
+            // Recalc totals after rendering
+            recalcTotal();
         }
 
         // ===== CART OPERATIONS =====
@@ -1033,6 +1150,7 @@
                 }
                 localStorage.setItem('cart', JSON.stringify(rawCart));
                 await loadCart(); // Reload cart to reflect changes
+                // After reload, recalcTotal will be called inside renderCart
             }
         };
 
@@ -1054,20 +1172,12 @@
                 const typeText = 'توصيل داخلي (بابل فقط)';
                 
                 const shippingEl = document.getElementById('shippingCost');
-                const shippingDisplay = document.getElementById('shippingDisplay');
-                const totalEl = document.getElementById('totalAmount');
                 const typeEl = document.getElementById('shippingType');
                 
                 if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
                 if (typeEl) typeEl.innerText = typeText;
-                if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
                 
-                let subtotal = 0;
-                Object.values(cart).forEach(item => {
-                    subtotal += (item.price || 0) * item.qty;
-                });
-                const total = subtotal + shipping;
-                if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
+                recalcTotal();
                 return;
             }
             
@@ -1085,20 +1195,12 @@
             }
             
             const shippingEl = document.getElementById('shippingCost');
-            const shippingDisplay = document.getElementById('shippingDisplay');
-            const totalEl = document.getElementById('totalAmount');
             const typeEl = document.getElementById('shippingType');
             
             if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
             if (typeEl) typeEl.innerText = typeText;
-            if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
             
-            let subtotal = 0;
-            Object.values(cart).forEach(item => {
-                subtotal += (item.price || 0) * item.qty;
-            });
-            const total = subtotal + shipping;
-            if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
+            recalcTotal();
         };
 
         // ===== VALIDATION =====
@@ -1192,7 +1294,8 @@
             });
             
             let shipping = hasInternalProduct ? 3000 : (province === 'بابل' ? 3000 : 5000);
-            const totalAmount = subtotal + shipping;
+            let discount = couponDiscountAmount;
+            const totalAmount = subtotal + shipping - discount;
             
             const orderData = {
                 customerName: name,
@@ -1209,13 +1312,29 @@
                 updatedAt: new Date().toISOString()
             };
             
+            if (appliedCoupon) {
+                orderData.coupon = {
+                    code: appliedCoupon.code,
+                    discountPercent: appliedCoupon.discountPercent,
+                    discountAmount: discount
+                };
+            }
+            
             try {
                 const newOrderRef = doc(collection(db, "orders"));
                 orderData.id = newOrderRef.id;
                 await setDoc(newOrderRef, orderData);
                 
+                // Increment coupon usage count if applicable
+                if (appliedCoupon) {
+                    await setDoc(doc(db, "coupons", appliedCoupon.id), {
+                        usedCount: (appliedCoupon.usedCount || 0) + 1
+                    }, { merge: true });
+                }
+                
                 // Send to Telegram
                 let itemsList = orderItems.map(item => `- ${item.name} (العدد: ${item.qty})`).join('\n');
+                let couponText = appliedCoupon ? `\n🏷️ كوبون: ${appliedCoupon.code} (${appliedCoupon.discountPercent}% خصم) | وفرت: ${discount.toLocaleString()} د.ع` : '';
                 const msg = `📦 طلب جديد من السلة:
 👤 ${name}
 📞 ${phone}
@@ -1224,7 +1343,7 @@
 ${notes ? `📝 ملاحظات: ${notes}\n` : ''}
 📦 المنتجات:
 ${itemsList}
-💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع`;
+💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع${couponText}`;
                 
                 fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
                 
