@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* جميع الأنماط الأصلية محفوظة كما هي، أضفنا تنسيقاً لحقل الكوبون */
+        /* جميع الأنماط الأصلية محفوظة كما هي */
         :root {
             --ios-bg-primary: #0A2F2F;
             --ios-bg-secondary: rgba(16, 55, 55, 0.85);
@@ -390,6 +390,47 @@
             box-shadow: 0 0 0 4px rgba(231, 29, 54, 0.1);
         }
 
+        /* Coupon Field */
+        .coupon-wrapper {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .coupon-wrapper input {
+            flex: 1;
+        }
+        .apply-coupon-btn {
+            width: auto;
+            padding: 12px 24px;
+            background: rgba(247, 249, 249, 0.1);
+            color: var(--ios-label-primary);
+            border: var(--glass-border);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .apply-coupon-btn:hover {
+            background: rgba(247, 249, 249, 0.2);
+        }
+        .coupon-message {
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .coupon-message.success {
+            background: rgba(46, 196, 182, 0.2);
+            color: #2EC4B6;
+        }
+        .coupon-message.error {
+            background: rgba(231, 29, 54, 0.2);
+            color: #E71D36;
+        }
+
+        /* تحسين القائمة المنسدلة للمحافظات */
         .form-select-wrapper {
             position: relative;
         }
@@ -455,35 +496,6 @@
 
         .form-error.show {
             display: flex;
-        }
-
-        /* Coupon Field */
-        .coupon-wrapper {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .coupon-wrapper input {
-            flex: 1;
-        }
-        .apply-coupon-btn {
-            width: auto;
-            padding: 12px 24px;
-            background: rgba(247, 249, 249, 0.1);
-            color: var(--ios-label-primary);
-            border: var(--glass-border);
-            border-radius: 14px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-        .apply-coupon-btn:hover {
-            background: rgba(247, 249, 249, 0.2);
-        }
-        .coupon-message {
-            font-size: 13px;
-            margin-top: 8px;
         }
 
         /* Shipping Info */
@@ -933,7 +945,10 @@
                     couponDiscountAmount = 0;
                     document.getElementById('discountRow').style.display = 'none';
                     const msgDiv = document.getElementById('couponMessage');
-                    if (msgDiv) msgDiv.innerHTML = '<span style="color: #E71D36;">⚠️ الكوبون غير صالح (الحد الأدنى للطلب لم يتحقق)</span>';
+                    if (msgDiv) {
+                        msgDiv.innerHTML = '<span>⚠️ الكوبون غير صالح (الحد الأدنى للطلب لم يتحقق)</span>';
+                        msgDiv.className = 'coupon-message error';
+                    }
                     document.getElementById('couponCode').value = '';
                 }
             } else {
@@ -950,8 +965,10 @@
 
         window.applyCoupon = async function() {
             const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            const msgDiv = document.getElementById('couponMessage');
             if (!code) {
-                showToast("أدخل كود الخصم", "error");
+                msgDiv.innerHTML = '<span>⚠️ الرجاء إدخال كود الخصم</span>';
+                msgDiv.className = 'coupon-message error';
                 return;
             }
             const subtotal = Object.values(cart).reduce((s, i) => s + (i.price || 0) * i.qty, 0);
@@ -962,24 +979,33 @@
                     if (doc.data().code === code) couponData = { id: doc.id, ...doc.data() };
                 });
                 if (!couponData) {
-                    showToast("❌ كود غير صحيح", "error");
+                    msgDiv.innerHTML = '<span>❌ كود غير صحيح أو غير موجود</span>';
+                    msgDiv.className = 'coupon-message error';
+                    showToast("❌ كود غير صحيح أو غير موجود", "error");
                     return;
                 }
                 if (couponData.usedCount >= couponData.usageLimit) {
-                    showToast("❌ هذا الكود انتهت صلاحيته (استُخدم العدد المسموح)", "error");
+                    msgDiv.innerHTML = '<span>⚠️ هذا الكود انتهت صلاحيته (استُخدم العدد المسموح)</span>';
+                    msgDiv.className = 'coupon-message error';
+                    showToast("❌ هذا الكود انتهت صلاحيته", "error");
                     return;
                 }
                 if (subtotal < couponData.minOrderAmount) {
-                    showToast(`⚠️ الحد الأدنى للطلب لهذا الكود هو ${couponData.minOrderAmount.toLocaleString()} د.ع`, "error");
+                    msgDiv.innerHTML = `<span>⚠️ الحد الأدنى للطلب لهذا الكود هو ${couponData.minOrderAmount.toLocaleString()} د.ع</span>`;
+                    msgDiv.className = 'coupon-message error';
+                    showToast(`⚠️ الحد الأدنى للطلب ${couponData.minOrderAmount.toLocaleString()} د.ع`, "error");
                     return;
                 }
                 appliedCoupon = couponData;
                 couponDiscountAmount = Math.floor(subtotal * couponData.discountPercent / 100);
-                document.getElementById('couponMessage').innerHTML = `<span style="color: #2EC4B6;">✓ تم تطبيق الخصم ${couponData.discountPercent}%</span>`;
+                msgDiv.innerHTML = `<span>✓ تم تطبيق الخصم ${couponData.discountPercent}%</span>`;
+                msgDiv.className = 'coupon-message success';
                 recalcTotal();
             } catch (error) {
                 console.error(error);
-                showToast("حدث خطأ أثناء التحقق", "error");
+                msgDiv.innerHTML = '<span>⚠️ حدث خطأ أثناء التحقق من الكوبون</span>';
+                msgDiv.className = 'coupon-message error';
+                showToast("حدث خطأ", "error");
             }
         };
 
