@@ -68,6 +68,11 @@
             80% { transform: scale(1.05); }
             100% { transform: scale(1); opacity:1; }
         }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
         .skeleton, .skeleton-chip, .skeleton-img, .skeleton-text, .skeleton-banner {
             background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
             background-size: 200% 100%;
@@ -240,7 +245,7 @@
             background: #0A2F2F;
         }
         .filter-collapsible-content.open {
-            max-height: 800px; /* ارتفاع كافٍ لجميع المحتويات */
+            max-height: 800px;
             opacity: 1;
             transition: max-height 0.5s ease-in, opacity 0.3s ease;
         }
@@ -485,6 +490,7 @@
         .btn-preview-full { background:rgba(90,154,154,0.2); color:#5A9A9A; border:2px solid rgba(90,154,154,0.3); }
         .btn-preview-full:hover { background:#5A9A9A; color:white; transform:translateY(-3px); }
         .load-more-container { display:flex; justify-content:center; padding:24px; max-width:1600px; margin:0 auto; }
+        .load-more-container.hidden { display: none; }
         .load-more-btn {
             background:linear-gradient(135deg, #2EC4B6, #25A89C); color:white; border:none;
             padding:14px 40px; border-radius:50px; font-size:16px; font-weight:800;
@@ -514,7 +520,172 @@
         .sync-dot { width:10px; height:10px; border-radius:50%; background:currentColor; animation:pulse 1.5s infinite; }
         .no-results { grid-column:1/-1; text-align:center; padding:80px 20px; color:#ccc; }
         .no-results-icon { font-size:64px; opacity:0.5; margin-bottom:20px; animation:bounceIn 0.6s; }
-        .ios-footer { background:#0A2F2F; padding:30px 24px; text-align:center; border-top:1px solid rgba(255,255,255,0.1); }
+
+        /* ===== حاوية المعلومات بتصميم iOS شفاف (زجاجي) ===== */
+        .info-container {
+            background: rgba(20, 50, 50, 0.3);  /* شفاف جداً */
+            backdrop-filter: blur(20px);        /* تأثير الزجاج المصقول (iOS) */
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 48px;
+            margin: 40px 24px 20px 24px;
+            padding: 40px 30px 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);   /* إطار أبيض شفاف */
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            animation: fade 0.6s ease-out;
+        }
+        .info-container:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-4px);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        /* البطاقات الداخلية شبه شفافة أيضاً */
+        .info-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 24px 20px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .info-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.3);
+        }
+        .info-card h3 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            color: #FF9F1C;
+            position: relative;
+            display: inline-block;
+        }
+        .info-card h3:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #FF9F1C, #2EC4B6);
+            border-radius: 3px;
+        }
+        .info-card p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+        .badge-agency {
+            background: rgba(255, 159, 28, 0.2);
+            border-right: 3px solid #FF9F1C;
+            padding: 12px 15px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #FF9F1C;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+        }
+        .social-links-footer {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .social-icon-footer {
+            width: 48px;
+            height: 48px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.6rem;
+            transition: all 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        .social-icon-footer:hover {
+            transform: scale(1.15) translateY(-5px);
+            background: #FF9F1C;
+            color: #0A2F2F;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(255, 159, 28, 0.5);
+        }
+        .contact-info {
+            list-style: none;
+            padding: 0;
+        }
+        .contact-info li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+        .contact-info li i {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 159, 28, 0.25);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #FF9F1C;
+            font-size: 1rem;
+        }
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 54px;
+            height: 54px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #FF9F1C, #E88D0C);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.6, 1.2);
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(255, 159, 28, 0.4);
+            backdrop-filter: blur(4px);
+        }
+        .scroll-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        .scroll-top-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            background: #FF9F1C;
+            box-shadow: 0 12px 25px rgba(255, 159, 28, 0.6);
+        }
+        .ios-footer {
+            background: #0A2F2F;
+            padding: 30px 24px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+        }
         .footer-text p { color:#aaa; margin-bottom:10px; }
         .copyright p { color:#888; font-size:14px; margin-top:20px; }
 
@@ -524,6 +695,12 @@
             .logo-text { font-size: 18px; }
             .header-social-link { width: 36px; height: 36px; font-size: 16px; }
             .products-grid { grid-template-columns: 1fr; gap: 16px; padding: 16px; }
+            .info-container { margin: 20px 16px; padding: 24px 18px; border-radius: 32px; }
+            .info-grid { gap: 20px; }
+            .info-card { padding: 18px; }
+            .info-card h3 { font-size: 1.4rem; }
+            .social-icon-footer { width: 42px; height: 42px; font-size: 1.3rem; }
+            .scroll-top-btn { width: 46px; height: 46px; bottom: 20px; right: 20px; font-size: 22px; }
             .ios-footer { padding: 20px 16px; }
             .footer-text p { font-size: 12px; }
             .copyright p { font-size: 11px; }
@@ -540,6 +717,7 @@
             .btn-action-full { padding: 10px; font-size: 13px; }
             .card-images-gallery { max-height: 220px; }
             .card-content-full { padding: 12px; }
+            .contact-info li { font-size: 0.85rem; gap: 8px; }
         }
         ::-webkit-scrollbar { width:6px; height:6px; }
         ::-webkit-scrollbar-track { background:#0A2F2F; }
@@ -577,7 +755,7 @@
                 <div class="header-social">
                     <a href="https://www.facebook.com/share/182h5phj37/" target="_blank" class="header-social-link"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://www.instagram.com/ah.00_t?igsh=MWh4bDlmcnFjaTl1dg==" target="_blank" class="header-social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="https://wa.me/9647863388806" target="_blank" class="header-social-link"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://wa.me/9647700000000" target="_blank" class="header-social-link"><i class="fab fa-whatsapp"></i></a>
                 </div>
                 <a href="cart.html" style="position:relative; text-decoration:none; background:rgba(255,159,28,0.2); color:#FF9F1C; border:2px solid rgba(255,159,28,0.4); padding:10px 20px; border-radius:30px; transition:all 0.3s;">
                     🛒 السلة
@@ -587,14 +765,13 @@
         </header>
     </div>
 
-    <!-- شريط البحث والفلاتر المدمج مع السهم -->
+    <!-- شريط البحث والفلاتر المدمج -->
     <div class="combined-filter-section">
         <button id="filterToggleBtn" class="filter-toggle-btn">
             <span><i class="fas fa-sliders-h"></i> خيارات البحث والتصفية</span>
             <i class="fas fa-chevron-down"></i>
         </button>
         <div id="filterCollapsible" class="filter-collapsible-content">
-            <!-- حقل البحث -->
             <div class="search-wrapper">
                 <div class="ios-search-wrapper">
                     <input type="text" id="searchInput" class="ios-search-input" placeholder="🔍 ابحث بالاسم أو المعرف (أرقام فقط)" oninput="handleSearch(this.value)">
@@ -602,12 +779,10 @@
                     <button class="ios-search-clear" id="searchClear" onclick="clearSearch()">✕</button>
                 </div>
             </div>
-            <!-- الفلاتر (الفئات والتصنيفات الفرعية) -->
             <div class="filters-container">
                 <div class="ios-filter-bar" id="filterBar"><div class="skeleton-chip"></div><div class="skeleton-chip"></div><div class="skeleton-chip"></div><div class="skeleton-chip"></div></div>
                 <div class="subcategory-filter-bar" id="subcategoryBar" style="display:none;"></div>
             </div>
-            <!-- خيارات الترتيب -->
             <div class="sort-options">
                 <span class="sort-label"><i class="fas fa-arrow-down-wide-short"></i> ترتيب حسب:</span>
                 <select id="sortSelect" class="sort-select">
@@ -624,12 +799,52 @@
         <div class="load-more-container" id="loadMoreContainer"><button id="loadMoreBtn" class="load-more-btn">📦 تحميل المزيد</button></div>
     </main>
 
+    <!-- حاوية المعلومات بتصميم iOS شفاف -->
+    <div class="info-container">
+        <div class="info-grid">
+            <!-- من نحن + الاعتماد -->
+            <div class="info-card">
+                <h3><i class="fas fa-store" style="margin-left: 8px;"></i> من نحن</h3>
+                <p>🏠 <strong>البيت الرقمي</strong> هو مركز و منصة تسوق إلكتروني في الحلة - ابو غرق، نقدم كل ما تحتاجه من إلكترونيات، أجهزة، هدايا. نتميز بالسرعة والجودة والثقة.</p>
+                <div class="badge-agency">
+                    <i class="fas fa-certificate"></i> مركز معتمد من اغلب الوكالات العالمية <br>
+                    <i class="fas fa-handshake"></i> وكلاء معتمدون في ابو غرق
+                </div>
+                <p style="margin-top: 12px;">✨ نؤمن أن التسوق يجب أن يكون تجربة ممتعة وآمنة، لذلك نوفر لك منتجات أصلية مع خدمة توصيل سريع ودعم فني على مدار الساعة.</p>
+            </div>
+            <!-- روابط التواصل الاجتماعي -->
+            <div class="info-card">
+                <h3><i class="fas fa-share-alt"></i> تابعنا</h3>
+                <div class="social-links-footer">
+                    <a href="https://www.facebook.com/share/182h5phj37/" target="_blank" class="social-icon-footer"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/ah.00_t?igsh=MWh4bDlmcnFjaTl1dg==" target="_blank" class="social-icon-footer"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/9647757062399" target="_blank" class="social-icon-footer"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://t.me/B_R1992" target="_blank" class="social-icon-footer"><i class="fab fa-telegram"></i></a>
+                    <a href="https://www.tiktok.com/@in.m_00" target="_blank" class="social-icon-footer"><i class="fab fa-tiktok"></i></a>
+                </div>
+                <p style="margin-top: 20px;">📢 انضم إلينا ليصلك كل جديد، عروض حصرية، وأكواد خصم يومية.</p>
+            </div>
+            <!-- معلومات الاتصال -->
+            <div class="info-card">
+                <h3><i class="fas fa-address-card"></i> اتصل بنا</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt"></i> الحلة - ابو غرق - شارع الامام</li>
+                    <li><i class="fas fa-phone-alt"></i> <a href="tel:07757062399" style="color:white; text-decoration:none;">07757062399</a></li>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:homedigitl@gmail.com" style="color:white; text-decoration:none;">homedigitl@gmail.com</a></li>
+                    <li><i class="fas fa-clock"></i> متواجدين في مركزنا من 8 صباحا الى 12 مساءا</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <footer class="ios-footer">
         <div class="footer-content">
             <div class="footer-text"><p>شكراً لزيارتك البيت الرقمي</p><p>نحن هنا لخدمتك بأفضل الطرق</p></div>
             <div class="copyright"><p>© 2026 جميع الحقوق محفوظة لـ <strong>مطورين البيت الرقمي</strong></p><p>البيت الرقمي - Al-Bayt Al-Raqmi</p></div>
         </div>
     </footer>
+
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="الصعود للأعلى"><i class="fas fa-arrow-up"></i></button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
@@ -659,12 +874,12 @@
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         const loadMoreContainer = document.getElementById('loadMoreContainer');
         const sortSelect = document.getElementById('sortSelect');
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
 
-        // زر السهم وطي المحتوى
+        // زر السهم
         const toggleBtn = document.getElementById('filterToggleBtn');
         const collapsible = document.getElementById('filterCollapsible');
         if (toggleBtn && collapsible) {
-            // على الشاشات الصغيرة نبدأ مطوي، على الكبيرة مفتوح
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
                 collapsible.classList.remove('open');
@@ -684,6 +899,18 @@
                 }
             });
         }
+
+        // زر الصعود للأعلى
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        });
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
 
         function shuffleArray(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
