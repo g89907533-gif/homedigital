@@ -597,6 +597,65 @@
             font-size: 20px;
         }
 
+        /* Coupon Section */
+        .coupon-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .coupon-input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .coupon-input-group .form-input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-apply-coupon {
+            flex: 0 0 auto;
+            padding: 12px 24px;
+            min-width: 100px;
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+        }
+
+        .btn-apply-coupon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 159, 28, 0.4);
+        }
+
+        .btn-apply-coupon:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #couponMessage {
+            margin-top: 12px;
+            font-size: 14px;
+            display: none;
+        }
+
+        #couponMessage.success {
+            color: var(--ios-green-neon);
+        }
+
+        #couponMessage.error {
+            color: var(--ios-red);
+        }
+
         /* Buttons */
         .btn-confirm {
             width: 100%;
@@ -942,6 +1001,21 @@
                 <!-- Summary will be updated here -->
             </div>
 
+            <!-- ===== COUPON SECTION ===== -->
+            <div class="coupon-section">
+                <div class="form-section-title" style="color: #FF9F1C;">
+                    <i class="fas fa-ticket-alt"></i> كود الخصم
+                </div>
+                <div class="coupon-input-group">
+                    <input type="text" id="couponCodeInput" class="form-input" placeholder="أدخل كود الخصم" dir="ltr">
+                    <button id="applyCouponBtn" class="btn-apply-coupon" onclick="applyCoupon()">
+                        تطبيق
+                    </button>
+                </div>
+                <div id="couponMessage"></div>
+            </div>
+            <!-- ========================== -->
+
             <button class="btn-confirm" id="submitOrderBtn" onclick="submitOrder()">
                 <span>تأكيد الطلب</span>
                 <i class="fas fa-check"></i>
@@ -957,7 +1031,11 @@
             collection, 
             doc, 
             setDoc, 
-            getDoc
+            getDoc,
+            getDocs,
+            query,
+            where,
+            increment
         } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -989,6 +1067,10 @@
         let effectivePrice = 0; // السعر الفعلي بعد الخصم
         let productShippingType = 'general'; // 'internal' or 'general'
         let toastTimeout;
+
+        // ===== COUPON VARIABLES =====
+        let appliedCoupon = null;
+        let discountValue = 0;
 
         // ===== INITIALIZATION =====
         async function init() {
@@ -1175,6 +1257,16 @@
             const qtyEl = document.getElementById('qtyValue');
             if (qtyEl) qtyEl.innerText = quantity;
             
+            // Reset coupon if applied because total changed
+            if (appliedCoupon) {
+                appliedCoupon = null;
+                discountValue = 0;
+                const msg = document.getElementById('couponMessage');
+                msg.style.display = 'none';
+                msg.className = '';
+                document.getElementById('couponCodeInput').value = '';
+            }
+            
             updateSummary();
         };
 
@@ -1206,8 +1298,47 @@
             if (shippingEl) shippingEl.innerText = cost > 0 ? cost.toLocaleString() + ' د.ع' : '--';
             if (typeEl) typeEl.innerText = typeText;
             
+            // Reset coupon if applied because shipping changed
+            if (appliedCoupon) {
+                appliedCoupon = null;
+                discountValue = 0;
+                const msg = document.getElementById('couponMessage');
+                msg.style.display = 'none';
+                msg.className = '';
+                document.getElementById('couponCodeInput').value = '';
+            }
+            
             updateSummary();
         };
+
+        function calculateDiscount() {
+            if (!appliedCoupon) {
+                discountValue = 0;
+                return;
+            }
+
+            const province = document.getElementById('province').value;
+            let shipping = 5000;
+            if (productShippingType === 'internal') {
+                shipping = 3000;
+            } else if (province === 'بابل') {
+                shipping = 3000;
+            } else if (province && province !== '') {
+                shipping = 5000;
+            } else {
+                shipping = 0;
+            }
+            const productTotal = effectivePrice * quantity;
+            const currentTotal = productTotal + shipping;
+
+            if (appliedCoupon.discountType === 'percent') {
+                discountValue = (currentTotal * appliedCoupon.discountValue) / 100;
+            } else {
+                discountValue = appliedCoupon.discountValue;
+            }
+
+            if (discountValue > currentTotal) discountValue = currentTotal;
+        }
 
         function updateSummary() {
             if (!currentProduct) return;
@@ -1221,11 +1352,18 @@
             } else if (province && province !== '') {
                 shipping = 5000;
             } else {
-                shipping = 0; // لم يتم اختيار محافظة
+                shipping = 0;
             }
             
             const productTotal = effectivePrice * quantity;
-            const total = shipping > 0 ? productTotal + shipping : productTotal;
+            let total = productTotal + shipping;
+            let discountDisplay = 0;
+
+            if (appliedCoupon) {
+                calculateDiscount();
+                total = total - discountValue;
+                discountDisplay = discountValue;
+            }
             
             const summaryEl = document.getElementById('orderSummary');
             if (summaryEl) {
@@ -1242,13 +1380,101 @@
                         <span>التوصيل:</span>
                         <span>${shipping > 0 ? shipping.toLocaleString() + ' د.ع' : '--'}</span>
                     </div>
-                    <div class="summary-row">
+                    ${appliedCoupon ? `
+                        <div class="summary-row" style="border-top: none; color: #E71D36;">
+                            <span>الخصم:</span>
+                            <span>-${discountDisplay.toLocaleString()} د.ع</span>
+                        </div>
+                    ` : ''}
+                    <div class="summary-row" style="border-top: 1px solid rgba(46, 196, 182, 0.2); color: var(--ios-green-neon); font-weight: 800; font-size: 20px;">
                         <span>الإجمالي:</span>
                         <span>${total.toLocaleString()} د.ع</span>
                     </div>
                 `;
             }
         }
+
+        // ===== COUPON FUNCTION =====
+        window.applyCoupon = async function() {
+            const codeInput = document.getElementById('couponCodeInput');
+            const code = codeInput.value.trim().toUpperCase();
+            const messageEl = document.getElementById('couponMessage');
+            const applyBtn = document.getElementById('applyCouponBtn');
+
+            if (!code) {
+                showToast('يرجى إدخال كود الخصم', 'error');
+                return;
+            }
+
+            applyBtn.disabled = true;
+            applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const q = query(collection(db, "coupons"), where("code", "==", code));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'error';
+                    messageEl.innerHTML = '❌ كود غير صحيح أو غير موجود';
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = 'تطبيق';
+                    return;
+                }
+
+                const couponDoc = querySnapshot.docs[0];
+                const coupon = { id: couponDoc.id, ...couponDoc.data() };
+
+                if (!coupon.active) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'error';
+                    messageEl.innerHTML = '❌ هذا الكوبون غير نشط';
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = 'تطبيق';
+                    return;
+                }
+
+                if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'error';
+                    messageEl.innerHTML = '❌ تم استخدام هذا الكوبون بالحد الأقصى';
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = 'تطبيق';
+                    return;
+                }
+
+                if (coupon.expiryDate) {
+                    const expiry = new Date(coupon.expiryDate);
+                    if (expiry < new Date()) {
+                        messageEl.style.display = 'block';
+                        messageEl.className = 'error';
+                        messageEl.innerHTML = '❌ انتهت صلاحية هذا الكوبون';
+                        applyBtn.disabled = false;
+                        applyBtn.innerHTML = 'تطبيق';
+                        return;
+                    }
+                }
+
+                appliedCoupon = coupon;
+                calculateDiscount();
+                updateSummary();
+
+                messageEl.style.display = 'block';
+                messageEl.className = 'success';
+                messageEl.innerHTML = `✅ تم تطبيق الخصم (${coupon.discountType === 'percent' ? coupon.discountValue + '%' : coupon.discountValue + ' د.ع'})`;
+                showToast('تم تطبيق كود الخصم بنجاح!', 'success');
+
+            } catch (error) {
+                console.error('Error applying coupon:', error);
+                messageEl.style.display = 'block';
+                messageEl.className = 'error';
+                messageEl.innerHTML = '❌ حدث خطأ أثناء التحقق من الكود';
+                showToast('حدث خطأ أثناء التحقق من الكود', 'error');
+            } finally {
+                applyBtn.disabled = false;
+                applyBtn.innerHTML = 'تطبيق';
+            }
+        };
 
         // ===== VALIDATION =====
         window.validatePhone = function(input) {
@@ -1363,7 +1589,17 @@
             }
             
             const productTotal = effectivePrice * quantity;
-            const totalAmount = productTotal + shipping;
+            let totalAmount = productTotal + shipping;
+            
+            // حساب الخصم
+            let discountApplied = 0;
+            let couponCode = null;
+            if (appliedCoupon) {
+                calculateDiscount();
+                discountApplied = discountValue;
+                totalAmount = totalAmount - discountApplied;
+                couponCode = appliedCoupon.code;
+            }
             
             // بناء كائن الطلب مع تضمين إجابة السؤال المخصص
             const orderItem = {
@@ -1386,6 +1622,8 @@
                 subtotal: productTotal,
                 shipping: shipping,
                 totalAmount: totalAmount,
+                discountCode: couponCode,
+                discountAmount: discountApplied,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -1403,9 +1641,19 @@
                 orderData.id = newOrderRef.id;
                 await setDoc(newOrderRef, orderData);
                 
+                // ===== تحديث عدد استخدامات الكوبون =====
+                if (appliedCoupon) {
+                    const couponRef = doc(db, "coupons", appliedCoupon.id);
+                    await setDoc(couponRef, {
+                        usedCount: increment(1)
+                    }, { merge: true });
+                    console.log(`✅ تم تحديث usedCount للكوبون ${appliedCoupon.code}`);
+                }
+                
                 // إرسال إلى Telegram مع عرض الإجابة والخصم
                 const discountText = effectivePrice !== (currentProduct.priceIQD || 0) ? `\n🏷️ خصم: ${currentProduct.discountPercent}% (${currentProduct.priceIQD?.toLocaleString()} → ${effectivePrice.toLocaleString()})` : '';
                 const customFieldText = customFieldAnswer ? `\n📌 ${currentProduct.customField.question}: ${customFieldAnswer}` : '';
+                const couponText = couponCode ? `\n🎫 كود الخصم: ${couponCode} (خصم ${discountApplied.toLocaleString()} د.ع)` : '';
                 const msg = `⚡ شراء مباشر:
 👤 ${name}
 📞 ${phone}
@@ -1414,7 +1662,7 @@
 ${notes ? `📝 ملاحظات: ${notes}\n` : ''}
 📦 المنتج: ${currentProduct.name}
 📊 الكمية: ${quantity}
-💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع${discountText}${customFieldText}`;
+💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع${discountText}${customFieldText}${couponText}`;
                 
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
                 
@@ -1430,10 +1678,12 @@ ${notes ? `📝 ملاحظات: ${notes}\n` : ''}
             }
         };
 
-        // ===== SUCCESS MODAL =====
+        // ===== SUCCESS MODAL (FIXED) =====
         function showSuccessModal() {
             const overlay = document.getElementById('successOverlay');
             if (overlay) {
+                // التمرير للأعلى لتظهر النافذة مباشرة
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 overlay.style.display = 'flex';
                 void overlay.offsetWidth;
                 overlay.classList.add('active');
