@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* جميع الأنماط الأصلية محفوظة كما هي */
+        /* نفس الأنماط السابقة مع إضافة تنسيق للخصومات (مطابق لـ buy.html) */
         :root {
             --ios-bg-primary: #0A2F2F;
             --ios-bg-secondary: rgba(16, 55, 55, 0.85);
@@ -153,6 +153,18 @@
             transform: translateX(-3px);
         }
 
+        .cart-badge {
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 50%;
+            font-size: 12px;
+            margin-right: 4px;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
         /* Main Container */
         .cart-container {
             max-width: 800px;
@@ -168,7 +180,35 @@
             margin-bottom: 8px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .page-title-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .clear-cart-btn {
+            background: rgba(231, 29, 54, 0.2);
+            color: var(--ios-red);
+            border: 1px solid rgba(231, 29, 54, 0.4);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clear-cart-btn:hover {
+            background: rgba(231, 29, 54, 0.4);
+            transform: scale(1.05);
         }
 
         .page-subtitle {
@@ -390,47 +430,7 @@
             box-shadow: 0 0 0 4px rgba(231, 29, 54, 0.1);
         }
 
-        /* Coupon Field */
-        .coupon-wrapper {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .coupon-wrapper input {
-            flex: 1;
-        }
-        .apply-coupon-btn {
-            width: auto;
-            padding: 12px 24px;
-            background: rgba(247, 249, 249, 0.1);
-            color: var(--ios-label-primary);
-            border: var(--glass-border);
-            border-radius: 14px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-        .apply-coupon-btn:hover {
-            background: rgba(247, 249, 249, 0.2);
-        }
-        .coupon-message {
-            font-size: 13px;
-            margin-top: 8px;
-            padding: 8px 12px;
-            border-radius: 10px;
-            display: inline-block;
-        }
-        .coupon-message.success {
-            background: rgba(46, 196, 182, 0.2);
-            color: #2EC4B6;
-        }
-        .coupon-message.error {
-            background: rgba(231, 29, 54, 0.2);
-            color: #E71D36;
-        }
-
-        /* تحسين القائمة المنسدلة للمحافظات */
+        /* تحسين القائمة المنسدلة للمحافظات (مطابق لـ buy.html) */
         .form-select-wrapper {
             position: relative;
         }
@@ -600,6 +600,12 @@
             transform: scale(0.98);
         }
 
+        .btn-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
         .btn-cancel {
             width: 100%;
             padding: 16px;
@@ -761,6 +767,11 @@
                 justify-content: center;
                 margin-top: 12px;
             }
+
+            .page-title-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
 
         /* Scrollbar */
@@ -821,7 +832,14 @@
     <!-- Main Content -->
     <main>
         <div class="cart-container" id="cartContainer">
-            <h1 class="page-title">🛒 سلة المشتريات</h1>
+            <div class="page-title">
+                <span>🛒 سلة المشتريات</span>
+                <div class="page-title-actions">
+                    <button id="clearCartBtn" class="clear-cart-btn" style="display:none;" onclick="clearCart()">
+                        <i class="fas fa-trash-alt"></i> تفريغ الكل
+                    </button>
+                </div>
+            </div>
             <p class="page-subtitle">راجع منتجاتك وأكمل بيانات التوصيل</p>
 
             <div id="cartContent">
@@ -837,8 +855,7 @@
             collection, 
             doc, 
             setDoc,
-            getDoc,
-            getDocs
+            getDoc
         } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -854,6 +871,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // ===== تكوين تيليجرام (سيتم استبداله بخادم وسيط لاحقاً) =====
+        // مؤقتاً نستخدمه، لكن ننصح بنقله لخادم سحابي
         const TELEGRAM_TOKEN = "8224453502:AAE72lDosgRpoKZwT4TQhyfRLodcsd37ID8";
         const TELEGRAM_CHAT_ID = "7769271031";
 
@@ -863,20 +882,22 @@
             "دهوك", "ديالى", "ميسان", "القادسية", "ذي قار"
         ];
 
-        let cart = {};
-        let cartProducts = {};
+        // ===== حالة السلة =====
+        let cart = {};               // { productId: { id, name, price, qty, image } }
+        let cartProducts = {};       // { productId: fullProductData }
         let hasInternalProduct = false;
         let isLoading = true;
 
-        // Coupon related
-        let appliedCoupon = null;        // { id, code, discountPercent, minOrderAmount, usageLimit, usedCount }
-        let couponDiscountAmount = 0;
+        // مراجع DOM
+        const cartContent = document.getElementById('cartContent');
+        const clearCartBtn = document.getElementById('clearCartBtn');
+        const toast = document.getElementById('toast');
+        let toastTimeout;
 
-        // ===== INITIALIZATION =====
-        async function init() {
-            await loadCart();
-        }
+        // ===== INIT =====
+        await loadCart();
 
+        // ===== تحميل السلة =====
         async function loadCart() {
             const rawCart = JSON.parse(localStorage.getItem('cart') || '{}');
             cart = {};
@@ -890,27 +911,35 @@
                 return;
             }
             
-            // Fetch product details for each item in cart
+            // جلب بيانات كل منتج
             for (const id of productIds) {
                 try {
                     const productDoc = await getDoc(doc(db, "products", id));
                     if (productDoc.exists()) {
                         const productData = productDoc.data();
+                        // نتأكد أن المنتج ليس عرضاً فقط (displayOnly) - إذا كان كذلك لا نضيفه
+                        if (productData.displayOnly === true) {
+                            // نحذف من السلة
+                            delete rawCart[id];
+                            continue;
+                        }
                         cartProducts[id] = productData;
                         if (productData.shippingType === 'internal') {
                             hasInternalProduct = true;
                         }
+                        // السعر الفعلي (بعد الخصم)
+                        const price = productData.discountIQD && productData.discountIQD > 0 && productData.discountIQD < (productData.priceIQD || 0) 
+                            ? productData.discountIQD 
+                            : (productData.priceIQD || 0);
                         cart[id] = {
                             id: id,
                             name: productData.name,
-                            price: productData.discountIQD && productData.discountIQD > 0 && productData.discountIQD < (productData.priceIQD || 0) 
-                                ? productData.discountIQD 
-                                : (productData.priceIQD || 0),
+                            price: price,
                             qty: rawCart[id].qty,
                             image: productData.images?.[0] || ''
                         };
                     } else {
-                        // Product no longer exists, remove from cart
+                        // المنتج غير موجود، نزيله من السلة
                         delete rawCart[id];
                     }
                 } catch (error) {
@@ -918,103 +947,23 @@
                 }
             }
             
-            // Save updated cart (removed missing products)
+            // حفظ السلة المحدثة
             localStorage.setItem('cart', JSON.stringify(rawCart));
             isLoading = false;
             renderCart();
         }
 
-        function recalcTotal() {
-            let subtotal = 0;
-            Object.values(cart).forEach(item => {
-                subtotal += (item.price || 0) * item.qty;
-            });
-
-            let shipping = hasInternalProduct ? 3000 : (document.getElementById('province')?.value === 'بابل' ? 3000 : 5000);
-            let discount = 0;
-
-            if (appliedCoupon) {
-                if (subtotal >= appliedCoupon.minOrderAmount) {
-                    discount = Math.floor(subtotal * appliedCoupon.discountPercent / 100);
-                    couponDiscountAmount = discount;
-                    document.getElementById('discountRow').style.display = 'flex';
-                    document.getElementById('summaryDiscount').innerHTML = `- ${discount.toLocaleString()} د.ع`;
-                } else {
-                    // Coupon no longer valid
-                    appliedCoupon = null;
-                    couponDiscountAmount = 0;
-                    document.getElementById('discountRow').style.display = 'none';
-                    const msgDiv = document.getElementById('couponMessage');
-                    if (msgDiv) {
-                        msgDiv.innerHTML = '<span>⚠️ الكوبون غير صالح (الحد الأدنى للطلب لم يتحقق)</span>';
-                        msgDiv.className = 'coupon-message error';
-                    }
-                    document.getElementById('couponCode').value = '';
-                }
-            } else {
-                couponDiscountAmount = 0;
-                document.getElementById('discountRow').style.display = 'none';
-            }
-
-            const total = subtotal + shipping - discount;
-            document.getElementById('summarySubtotal').innerText = subtotal.toLocaleString() + ' د.ع';
-            document.getElementById('summaryShipping').innerText = shipping.toLocaleString() + ' د.ع';
-            document.getElementById('summaryTotal').innerText = total.toLocaleString() + ' د.ع';
-            return { subtotal, shipping, discount, total };
-        }
-
-        window.applyCoupon = async function() {
-            const code = document.getElementById('couponCode').value.trim().toUpperCase();
-            const msgDiv = document.getElementById('couponMessage');
-            if (!code) {
-                msgDiv.innerHTML = '<span>⚠️ الرجاء إدخال كود الخصم</span>';
-                msgDiv.className = 'coupon-message error';
-                return;
-            }
-            const subtotal = Object.values(cart).reduce((s, i) => s + (i.price || 0) * i.qty, 0);
-            try {
-                const querySnapshot = await getDocs(collection(db, "coupons"));
-                let couponData = null;
-                querySnapshot.forEach(doc => {
-                    if (doc.data().code === code) couponData = { id: doc.id, ...doc.data() };
-                });
-                if (!couponData) {
-                    msgDiv.innerHTML = '<span>❌ كود غير صحيح أو غير موجود</span>';
-                    msgDiv.className = 'coupon-message error';
-                    showToast("❌ كود غير صحيح أو غير موجود", "error");
-                    return;
-                }
-                if (couponData.usedCount >= couponData.usageLimit) {
-                    msgDiv.innerHTML = '<span>⚠️ هذا الكود انتهت صلاحيته (استُخدم العدد المسموح)</span>';
-                    msgDiv.className = 'coupon-message error';
-                    showToast("❌ هذا الكود انتهت صلاحيته", "error");
-                    return;
-                }
-                if (subtotal < couponData.minOrderAmount) {
-                    msgDiv.innerHTML = `<span>⚠️ الحد الأدنى للطلب لهذا الكود هو ${couponData.minOrderAmount.toLocaleString()} د.ع</span>`;
-                    msgDiv.className = 'coupon-message error';
-                    showToast(`⚠️ الحد الأدنى للطلب ${couponData.minOrderAmount.toLocaleString()} د.ع`, "error");
-                    return;
-                }
-                appliedCoupon = couponData;
-                couponDiscountAmount = Math.floor(subtotal * couponData.discountPercent / 100);
-                msgDiv.innerHTML = `<span>✓ تم تطبيق الخصم ${couponData.discountPercent}%</span>`;
-                msgDiv.className = 'coupon-message success';
-                recalcTotal();
-            } catch (error) {
-                console.error(error);
-                msgDiv.innerHTML = '<span>⚠️ حدث خطأ أثناء التحقق من الكوبون</span>';
-                msgDiv.className = 'coupon-message error';
-                showToast("حدث خطأ", "error");
-            }
-        };
-
+        // ===== عرض السلة =====
         function renderCart() {
-            const container = document.getElementById('cartContent');
             const items = Object.values(cart);
             
+            // إظهار/إخفاء زر تفريغ الكل
+            if (clearCartBtn) {
+                clearCartBtn.style.display = items.length > 0 ? 'flex' : 'none';
+            }
+
             if (items.length === 0) {
-                container.innerHTML = `
+                cartContent.innerHTML = `
                     <div class="empty-cart">
                         <div class="empty-cart-icon">🛒</div>
                         <h3>السلة فارغة</h3>
@@ -1026,9 +975,12 @@
             }
             
             let itemsHtml = '<div class="cart-items-container">';
+            let subtotal = 0;
+            
             items.forEach((item) => {
+                subtotal += (item.price || 0) * item.qty;
                 itemsHtml += `
-                    <div class="cart-item">
+                    <div class="cart-item" data-id="${item.id}">
                         ${item.image ? `<img src="${item.image}" class="cart-item-img" onerror="this.style.display='none'">` : '<div style="width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--ios-label-tertiary);">📦</div>'}
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name}</div>
@@ -1036,16 +988,17 @@
                         </div>
                         <div class="cart-item-controls">
                             <button class="cart-item-btn minus" onclick="updateQty('${item.id}', -1)">−</button>
-                            <span class="cart-item-qty">${item.qty}</span>
+                            <span class="cart-item-qty" id="qty-${item.id}">${item.qty}</span>
                             <button class="cart-item-btn plus" onclick="updateQty('${item.id}', 1)">+</button>
                             <button class="cart-item-btn delete" onclick="removeItem('${item.id}')">🗑</button>
                         </div>
                     </div>
                 `;
             });
+            
             itemsHtml += '</div>';
             
-            // Determine shipping based on product types
+            // تحديد خيارات المحافظة والتوصيل
             let shipping = hasInternalProduct ? 3000 : 5000;
             let shippingTypeText = hasInternalProduct ? 'توصيل داخلي (بابل فقط)' : 'سيتم التحديد بعد اختيار المحافظة';
             let provinceOptions = '';
@@ -1057,22 +1010,11 @@
                     IRAQI_PROVINCES.map(p => `<option value="${p}">${p}</option>`).join('');
             }
             
-            // Calculate subtotal for initial display
-            const subtotal = items.reduce((s, i) => s + (i.price || 0) * i.qty, 0);
+            const total = subtotal + shipping;
             
-            container.innerHTML = itemsHtml + `
+            cartContent.innerHTML = itemsHtml + `
                 <div class="form-section">
                     <div class="form-section-title">📍 معلومات التوصيل</div>
-
-                    <!-- Coupon field -->
-                    <div class="form-group">
-                        <label class="form-label">🏷️ كود الخصم (اختياري)</label>
-                        <div class="coupon-wrapper">
-                            <input type="text" id="couponCode" class="form-input" placeholder="أدخل كود الخصم">
-                            <button class="apply-coupon-btn" onclick="applyCoupon()">تطبيق</button>
-                        </div>
-                        <div id="couponMessage" class="coupon-message"></div>
-                    </div>
                     
                     <div class="form-group">
                         <input type="text" 
@@ -1129,30 +1071,26 @@
                 <div class="order-summary" id="orderSummary">
                     <div class="summary-row">
                         <span>المجموع:</span>
-                        <span id="summarySubtotal">${subtotal.toLocaleString()} د.ع</span>
-                    </div>
-                    <div class="summary-row" id="discountRow" style="display: none;">
-                        <span>خصم الكوبون:</span>
-                        <span id="summaryDiscount">- 0 د.ع</span>
+                        <span>${subtotal.toLocaleString()} د.ع</span>
                     </div>
                     <div class="summary-row">
                         <span>التوصيل:</span>
-                        <span id="summaryShipping">${shipping.toLocaleString()} د.ع</span>
+                        <span id="shippingDisplay">${shipping.toLocaleString()} د.ع</span>
                     </div>
                     <div class="summary-row">
                         <span>الإجمالي:</span>
-                        <span id="summaryTotal">${(subtotal + shipping).toLocaleString()} د.ع</span>
+                        <span id="totalAmount">${total.toLocaleString()} د.ع</span>
                     </div>
                 </div>
 
-                <button class="btn-confirm" onclick="submitOrder()">
+                <button class="btn-confirm" id="submitOrderBtn" onclick="submitOrder()">
                     <span>إرسال الطلب</span>
                     <i class="fas fa-check"></i>
                 </button>
                 <a href="index.html" class="btn-cancel">مواصلة التسوق</a>
             `;
             
-            // If internal products exist, set the province to Babylon and disable it
+            // إذا كان المنتج داخلياً، نضبط المحافظة على بابل ونعطلها
             if (hasInternalProduct) {
                 const provinceSelect = document.getElementById('province');
                 if (provinceSelect) {
@@ -1161,56 +1099,158 @@
                 }
                 updateShipping();
             }
-            
-            // Recalc totals after rendering
-            recalcTotal();
         }
 
-        // ===== CART OPERATIONS =====
-        window.updateQty = async function(id, change) {
+        // ===== تحديث الكمية (بدون إعادة تحميل) =====
+        window.updateQty = function(id, change) {
             let rawCart = JSON.parse(localStorage.getItem('cart') || '{}');
-            if (rawCart[id]) {
-                rawCart[id].qty += change;
-                if (rawCart[id].qty <= 0) {
-                    delete rawCart[id];
-                }
+            if (!rawCart[id]) return;
+            
+            const newQty = (rawCart[id].qty || 0) + change;
+            if (newQty <= 0) {
+                // حذف العنصر
+                delete rawCart[id];
                 localStorage.setItem('cart', JSON.stringify(rawCart));
-                await loadCart(); // Reload cart to reflect changes
-                // After reload, recalcTotal will be called inside renderCart
+                // حذف من الكائن المحلي
+                delete cart[id];
+                // إزالة العنصر من DOM
+                const itemEl = document.querySelector(`.cart-item[data-id="${id}"]`);
+                if (itemEl) itemEl.remove();
+                // إعادة حساب المجموع
+                updateTotals();
+                // تحديث عداد السلة في الشريط (إن وجد)
+                updateCartBadge();
+                showToast("تم حذف المنتج");
+                // التحقق من السلة الفارغة
+                if (Object.keys(cart).length === 0) {
+                    renderCart();
+                }
+                return;
             }
+            
+            // تحديث الكمية في localStorage
+            rawCart[id].qty = newQty;
+            localStorage.setItem('cart', JSON.stringify(rawCart));
+            
+            // تحديث الكائن المحلي
+            if (cart[id]) cart[id].qty = newQty;
+            
+            // تحديث DOM
+            const qtySpan = document.getElementById(`qty-${id}`);
+            if (qtySpan) qtySpan.textContent = newQty;
+            
+            // إعادة حساب المجموع
+            updateTotals();
+            updateCartBadge();
         };
 
-        window.removeItem = async function(id) {
+        // ===== حذف عنصر =====
+        window.removeItem = function(id) {
             let rawCart = JSON.parse(localStorage.getItem('cart') || '{}');
             if (rawCart[id]) {
                 delete rawCart[id];
                 localStorage.setItem('cart', JSON.stringify(rawCart));
-                await loadCart();
+                delete cart[id];
+                const itemEl = document.querySelector(`.cart-item[data-id="${id}"]`);
+                if (itemEl) itemEl.remove();
+                updateTotals();
+                updateCartBadge();
                 showToast("تم حذف المنتج");
+                if (Object.keys(cart).length === 0) {
+                    renderCart();
+                }
             }
         };
 
-        // ===== SHIPPING =====
+        // ===== تفريغ السلة بالكامل =====
+        window.clearCart = function() {
+            if (Object.keys(cart).length === 0) return;
+            if (!confirm('هل أنت متأكد من تفريغ السلة بالكامل؟')) return;
+            
+            localStorage.removeItem('cart');
+            cart = {};
+            renderCart();
+            updateCartBadge();
+            showToast("تم تفريغ السلة");
+        };
+
+        // ===== تحديث المجاميع =====
+        function updateTotals() {
+            let subtotal = 0;
+            Object.values(cart).forEach(item => {
+                subtotal += (item.price || 0) * item.qty;
+            });
+            
+            let shipping = hasInternalProduct ? 3000 : 5000;
+            // إذا كانت المحافظة محددة وليست داخلية، نتحقق من بابل
+            const provinceSelect = document.getElementById('province');
+            if (provinceSelect && !hasInternalProduct) {
+                const province = provinceSelect.value;
+                if (province === 'بابل') shipping = 3000;
+                else if (province && province !== '') shipping = 5000;
+            }
+            
+            const total = subtotal + shipping;
+            
+            // تحديث العناصر في DOM
+            const subtotalEl = document.querySelector('.summary-row:first-child span:last-child');
+            const shippingDisplay = document.getElementById('shippingDisplay');
+            const totalEl = document.getElementById('totalAmount');
+            const shippingCostEl = document.getElementById('shippingCost');
+            
+            if (subtotalEl) subtotalEl.textContent = subtotal.toLocaleString() + ' د.ع';
+            if (shippingDisplay) shippingDisplay.textContent = shipping.toLocaleString() + ' د.ع';
+            if (totalEl) totalEl.textContent = total.toLocaleString() + ' د.ع';
+            if (shippingCostEl) shippingCostEl.textContent = shipping.toLocaleString() + ' د.ع';
+        }
+
+        // ===== تحديث عداد السلة =====
+        function updateCartBadge() {
+            // محاولة تحديث العداد في الصفحة الرئيسية (إذا كانت مفتوحة)
+            const badge = document.getElementById('cartCount');
+            if (badge) {
+                let cnt = 0;
+                Object.values(cart).forEach(i => cnt += i.qty);
+                badge.style.display = cnt > 0 ? 'inline-block' : 'none';
+                badge.innerText = cnt;
+            }
+        }
+
+        // ===== التوصيل =====
         window.updateShipping = function() {
             if (hasInternalProduct) {
-                // Shipping fixed at 3000
+                // التوصيل ثابت 3000
                 const shipping = 3000;
                 const typeText = 'توصيل داخلي (بابل فقط)';
                 
                 const shippingEl = document.getElementById('shippingCost');
+                const shippingDisplay = document.getElementById('shippingDisplay');
+                const totalEl = document.getElementById('totalAmount');
                 const typeEl = document.getElementById('shippingType');
                 
                 if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
                 if (typeEl) typeEl.innerText = typeText;
+                if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
                 
-                recalcTotal();
+                let subtotal = 0;
+                Object.values(cart).forEach(item => {
+                    subtotal += (item.price || 0) * item.qty;
+                });
+                const total = subtotal + shipping;
+                if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
                 return;
             }
             
-            // All products are general
+            // جميع المنتجات عامة
             const province = document.getElementById('province').value;
             let shipping = 5000;
             let typeText = 'توصيل عام (جميع المحافظات)';
+            
+            // التحقق من صحة المحافظة
+            if (province && !IRAQI_PROVINCES.includes(province)) {
+                showToast("المحافظة غير صالحة", "error");
+                return;
+            }
             
             if (province === 'بابل') {
                 shipping = 3000;
@@ -1221,15 +1261,23 @@
             }
             
             const shippingEl = document.getElementById('shippingCost');
+            const shippingDisplay = document.getElementById('shippingDisplay');
+            const totalEl = document.getElementById('totalAmount');
             const typeEl = document.getElementById('shippingType');
             
             if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
             if (typeEl) typeEl.innerText = typeText;
+            if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
             
-            recalcTotal();
+            let subtotal = 0;
+            Object.values(cart).forEach(item => {
+                subtotal += (item.price || 0) * item.qty;
+            });
+            const total = subtotal + shipping;
+            if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
         };
 
-        // ===== VALIDATION =====
+        // ===== التحقق من صحة الهاتف =====
         window.validatePhone = function(input) {
             if (!input) return;
             
@@ -1257,10 +1305,13 @@
             }
         };
 
-        // ===== SUBMIT ORDER =====
+        // ===== إرسال الطلب =====
         window.submitOrder = async function() {
             const items = Object.values(cart);
-            if (items.length === 0) return;
+            if (items.length === 0) {
+                showToast("السلة فارغة", "error");
+                return;
+            }
             
             const name = document.getElementById('customerName').value.trim();
             const phone = document.getElementById('customerPhone').value.trim();
@@ -1268,7 +1319,13 @@
             const address = document.getElementById('address').value.trim();
             const notes = document.getElementById('orderNotes')?.value.trim() || '';
             
-            // Validation
+            // التحقق من صحة المحافظة
+            if (province && !IRAQI_PROVINCES.includes(province)) {
+                showToast("المحافظة غير صالحة", "error");
+                return;
+            }
+            
+            // التحقق من الحقول
             let hasError = false;
             
             if (!name) {
@@ -1303,12 +1360,13 @@
                 return;
             }
             
-            // Check province compatibility with internal products
+            // التحقق من توافق المحافظة مع المنتجات الداخلية
             if (hasInternalProduct && province !== 'بابل') {
                 showToast("السلة تحتوي على منتج يُشحن فقط داخل محافظة بابل", "error");
                 return;
             }
             
+            // حساب المجاميع
             let subtotal = 0;
             const orderItems = items.map(item => {
                 subtotal += (item.price || 0) * item.qty;
@@ -1320,8 +1378,7 @@
             });
             
             let shipping = hasInternalProduct ? 3000 : (province === 'بابل' ? 3000 : 5000);
-            let discount = couponDiscountAmount;
-            const totalAmount = subtotal + shipping - discount;
+            const totalAmount = subtotal + shipping;
             
             const orderData = {
                 customerName: name,
@@ -1338,12 +1395,11 @@
                 updatedAt: new Date().toISOString()
             };
             
-            if (appliedCoupon) {
-                orderData.coupon = {
-                    code: appliedCoupon.code,
-                    discountPercent: appliedCoupon.discountPercent,
-                    discountAmount: discount
-                };
+            // تعطيل الزر لمنع الضغط المتكرر
+            const submitBtn = document.getElementById('submitOrderBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>جاري الإرسال...</span><i class="fas fa-spinner fa-spin"></i>';
             }
             
             try {
@@ -1351,39 +1407,37 @@
                 orderData.id = newOrderRef.id;
                 await setDoc(newOrderRef, orderData);
                 
-                // Increment coupon usage count if applicable
-                if (appliedCoupon) {
-                    await setDoc(doc(db, "coupons", appliedCoupon.id), {
-                        usedCount: (appliedCoupon.usedCount || 0) + 1
-                    }, { merge: true });
-                }
-                
-                // Send to Telegram
+                // إرسال إلى تيليجرام
                 let itemsList = orderItems.map(item => `- ${item.name} (العدد: ${item.qty})`).join('\n');
-                let couponText = appliedCoupon ? `\n🏷️ كوبون: ${appliedCoupon.code} (${appliedCoupon.discountPercent}% خصم) | وفرت: ${discount.toLocaleString()} د.ع` : '';
                 const msg = `📦 طلب جديد من السلة:
-👤 ${name}
-📞 ${phone}
-🏛️ ${province}
-📍 ${address}
-${notes ? `📝 ملاحظات: ${notes}\n` : ''}
-📦 المنتجات:
-${itemsList}
-💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع${couponText}`;
+        👤 ${name}
+        📞 ${phone}
+        🏛️ ${province}
+        📍 ${address}
+        ${notes ? `📝 ملاحظات: ${notes}\n` : ''}
+        📦 المنتجات:
+        ${itemsList}
+        💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع`;
                 
-                fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
                 
-                // Clear cart
+                // مسح السلة
                 localStorage.removeItem('cart');
+                cart = {};
                 
                 showSuccessModal();
             } catch (error) {
                 console.error("Order error:", error);
-                showToast("حدث خطأ أثناء إرسال الطلب", "error");
+                showToast("حدث خطأ أثناء إرسال الطلب. تأكد من اتصالك بالإنترنت.", "error");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>إرسال الطلب</span><i class="fas fa-check"></i>';
+                }
             }
         };
 
-        // ===== SUCCESS MODAL =====
+        // ===== نافذة النجاح =====
         function showSuccessModal() {
             const overlay = document.getElementById('successOverlay');
             if (overlay) {
@@ -1402,9 +1456,8 @@ ${itemsList}
             window.location.href = 'index.html';
         };
 
-        // ===== UTILITY =====
+        // ===== التوست =====
         function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
             if (!toast) return;
             
             toast.className = 'ios-toast';
@@ -1413,12 +1466,28 @@ ${itemsList}
             let icon = type === 'error' ? '✕' : '✓';
             toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
             
+            if (toastTimeout) clearTimeout(toastTimeout);
             requestAnimationFrame(() => toast.classList.add('show'));
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Initialize
-        init();
+        // ===== تحميل عداد السلة في شريط الصفحة =====
+        // سيتم تحديثه عند تغيير السلة
+
+        // ===== تأثير التمرير على الشريط =====
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.ios-navbar');
+            if (navbar) {
+                navbar.classList.toggle('scrolled', window.scrollY > 10);
+            }
+        });
+
+        // ===== جعل الدوال عامة =====
+        window.loadCart = loadCart;
+        window.renderCart = renderCart;
+        window.updateTotals = updateTotals;
+        window.updateCartBadge = updateCartBadge;
+        window.showToast = showToast;
     </script>
 </body>
 </html>
