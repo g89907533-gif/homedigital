@@ -571,6 +571,65 @@
             font-size: 22px;
         }
 
+        /* Coupon Section */
+        .coupon-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .coupon-input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .coupon-input-group .form-input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-apply-coupon {
+            flex: 0 0 auto;
+            padding: 12px 24px;
+            min-width: 100px;
+            background: linear-gradient(135deg, #FF9F1C 0%, #E88D0C 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s var(--ios-spring);
+        }
+
+        .btn-apply-coupon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 159, 28, 0.4);
+        }
+
+        .btn-apply-coupon:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #couponMessage {
+            margin-top: 12px;
+            font-size: 14px;
+            display: none;
+        }
+
+        #couponMessage.success {
+            color: var(--ios-green-neon);
+        }
+
+        #couponMessage.error {
+            color: var(--ios-red);
+        }
+
         /* Buttons */
         .btn-confirm {
             width: 100%;
@@ -855,7 +914,11 @@
             collection, 
             doc, 
             setDoc,
-            getDoc
+            getDoc,
+            getDocs,
+            query,
+            where,
+            increment
         } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -872,7 +935,6 @@
         const db = getFirestore(app);
 
         // ===== تكوين تيليجرام (سيتم استبداله بخادم وسيط لاحقاً) =====
-        // مؤقتاً نستخدمه، لكن ننصح بنقله لخادم سحابي
         const TELEGRAM_TOKEN = "8224453502:AAE72lDosgRpoKZwT4TQhyfRLodcsd37ID8";
         const TELEGRAM_CHAT_ID = "7769271031";
 
@@ -887,6 +949,10 @@
         let cartProducts = {};       // { productId: fullProductData }
         let hasInternalProduct = false;
         let isLoading = true;
+
+        // ===== COUPON VARIABLES =====
+        let appliedCoupon = null;
+        let discountValue = 0;
 
         // مراجع DOM
         const cartContent = document.getElementById('cartContent');
@@ -1071,17 +1137,39 @@
                 <div class="order-summary" id="orderSummary">
                     <div class="summary-row">
                         <span>المجموع:</span>
-                        <span>${subtotal.toLocaleString()} د.ع</span>
+                        <span id="subtotalDisplay">${subtotal.toLocaleString()} د.ع</span>
                     </div>
                     <div class="summary-row">
                         <span>التوصيل:</span>
                         <span id="shippingDisplay">${shipping.toLocaleString()} د.ع</span>
+                    </div>
+                    <!-- سيتم إضافة الخصم هنا ديناميكياً -->
+                    <div id="discountRow" style="display: none;">
+                        <div class="summary-row" style="border-top: none; color: #E71D36;">
+                            <span>الخصم:</span>
+                            <span id="discountAmount">-0 د.ع</span>
+                        </div>
                     </div>
                     <div class="summary-row">
                         <span>الإجمالي:</span>
                         <span id="totalAmount">${total.toLocaleString()} د.ع</span>
                     </div>
                 </div>
+
+                <!-- ===== COUPON SECTION (NEW) ===== -->
+                <div class="coupon-section">
+                    <div class="form-section-title" style="color: #FF9F1C;">
+                        <i class="fas fa-ticket-alt"></i> كود الخصم
+                    </div>
+                    <div class="coupon-input-group">
+                        <input type="text" id="couponCodeInput" class="form-input" placeholder="أدخل كود الخصم" dir="ltr">
+                        <button id="applyCouponBtn" class="btn-apply-coupon" onclick="applyCoupon()">
+                            تطبيق
+                        </button>
+                    </div>
+                    <div id="couponMessage"></div>
+                </div>
+                <!-- ========================== -->
 
                 <button class="btn-confirm" id="submitOrderBtn" onclick="submitOrder()">
                     <span>إرسال الطلب</span>
@@ -1098,6 +1186,18 @@
                     provinceSelect.disabled = true;
                 }
                 updateShipping();
+            }
+
+            // Reset coupon if cart changes
+            if (appliedCoupon) {
+                appliedCoupon = null;
+                discountValue = 0;
+                const msg = document.getElementById('couponMessage');
+                if (msg) {
+                    msg.style.display = 'none';
+                    msg.className = '';
+                }
+                document.getElementById('couponCodeInput').value = '';
             }
         }
 
@@ -1116,6 +1216,16 @@
                 // إزالة العنصر من DOM
                 const itemEl = document.querySelector(`.cart-item[data-id="${id}"]`);
                 if (itemEl) itemEl.remove();
+                
+                // Reset coupon if applied
+                if (appliedCoupon) {
+                    appliedCoupon = null;
+                    discountValue = 0;
+                    const msg = document.getElementById('couponMessage');
+                    if (msg) { msg.style.display = 'none'; msg.className = ''; }
+                    document.getElementById('couponCodeInput').value = '';
+                }
+                
                 // إعادة حساب المجموع
                 updateTotals();
                 // تحديث عداد السلة في الشريط (إن وجد)
@@ -1139,6 +1249,15 @@
             const qtySpan = document.getElementById(`qty-${id}`);
             if (qtySpan) qtySpan.textContent = newQty;
             
+            // Reset coupon if applied because total changed
+            if (appliedCoupon) {
+                appliedCoupon = null;
+                discountValue = 0;
+                const msg = document.getElementById('couponMessage');
+                if (msg) { msg.style.display = 'none'; msg.className = ''; }
+                document.getElementById('couponCodeInput').value = '';
+            }
+            
             // إعادة حساب المجموع
             updateTotals();
             updateCartBadge();
@@ -1153,6 +1272,15 @@
                 delete cart[id];
                 const itemEl = document.querySelector(`.cart-item[data-id="${id}"]`);
                 if (itemEl) itemEl.remove();
+                
+                if (appliedCoupon) {
+                    appliedCoupon = null;
+                    discountValue = 0;
+                    const msg = document.getElementById('couponMessage');
+                    if (msg) { msg.style.display = 'none'; msg.className = ''; }
+                    document.getElementById('couponCodeInput').value = '';
+                }
+                
                 updateTotals();
                 updateCartBadge();
                 showToast("تم حذف المنتج");
@@ -1169,12 +1297,95 @@
             
             localStorage.removeItem('cart');
             cart = {};
+            appliedCoupon = null;
+            discountValue = 0;
             renderCart();
             updateCartBadge();
             showToast("تم تفريغ السلة");
         };
 
-        // ===== تحديث المجاميع =====
+        // ===== COUPON FUNCTION =====
+        window.applyCoupon = async function() {
+            const codeInput = document.getElementById('couponCodeInput');
+            const code = codeInput.value.trim().toUpperCase();
+            const messageEl = document.getElementById('couponMessage');
+            const applyBtn = document.getElementById('applyCouponBtn');
+
+            if (!code) {
+                showToast('يرجى إدخال كود الخصم', 'error');
+                return;
+            }
+
+            applyBtn.disabled = true;
+            applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const q = query(collection(db, "coupons"), where("code", "==", code));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'error';
+                    messageEl.innerHTML = '❌ كود غير صحيح أو غير موجود';
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = 'تطبيق';
+                    return;
+                }
+
+                const couponDoc = querySnapshot.docs[0];
+                const coupon = { id: couponDoc.id, ...couponDoc.data() };
+
+                if (!coupon.active) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'error';
+                    messageEl.innerHTML = '❌ هذا الكوبون غير نشط';
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = 'تطبيق';
+                    return;
+                }
+
+                if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'error';
+                    messageEl.innerHTML = '❌ تم استخدام هذا الكوبون بالحد الأقصى';
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = 'تطبيق';
+                    return;
+                }
+
+                if (coupon.expiryDate) {
+                    const expiry = new Date(coupon.expiryDate);
+                    if (expiry < new Date()) {
+                        messageEl.style.display = 'block';
+                        messageEl.className = 'error';
+                        messageEl.innerHTML = '❌ انتهت صلاحية هذا الكوبون';
+                        applyBtn.disabled = false;
+                        applyBtn.innerHTML = 'تطبيق';
+                        return;
+                    }
+                }
+
+                appliedCoupon = coupon;
+                updateTotals();
+
+                messageEl.style.display = 'block';
+                messageEl.className = 'success';
+                messageEl.innerHTML = `✅ تم تطبيق الخصم (${coupon.discountType === 'percent' ? coupon.discountValue + '%' : coupon.discountValue + ' د.ع'})`;
+                showToast('تم تطبيق كود الخصم بنجاح!', 'success');
+
+            } catch (error) {
+                console.error('Error applying coupon:', error);
+                messageEl.style.display = 'block';
+                messageEl.className = 'error';
+                messageEl.innerHTML = '❌ حدث خطأ أثناء التحقق من الكود';
+                showToast('حدث خطأ أثناء التحقق من الكود', 'error');
+            } finally {
+                applyBtn.disabled = false;
+                applyBtn.innerHTML = 'تطبيق';
+            }
+        };
+
+        // ===== تحديث المجاميع (مع الخصم) =====
         function updateTotals() {
             let subtotal = 0;
             Object.values(cart).forEach(item => {
@@ -1188,25 +1399,50 @@
                 const province = provinceSelect.value;
                 if (province === 'بابل') shipping = 3000;
                 else if (province && province !== '') shipping = 5000;
+                else shipping = 0; // لم يتم اختيار محافظة
             }
             
-            const total = subtotal + shipping;
-            
+            let total = subtotal + shipping;
+            let discountDisplay = 0;
+
+            // حساب الخصم
+            if (appliedCoupon) {
+                if (appliedCoupon.discountType === 'percent') {
+                    discountValue = (total * appliedCoupon.discountValue) / 100;
+                } else {
+                    discountValue = appliedCoupon.discountValue;
+                }
+                if (discountValue > total) discountValue = total;
+                total = total - discountValue;
+                discountDisplay = discountValue;
+            }
+
             // تحديث العناصر في DOM
-            const subtotalEl = document.querySelector('.summary-row:first-child span:last-child');
+            const subtotalEl = document.getElementById('subtotalDisplay');
             const shippingDisplay = document.getElementById('shippingDisplay');
             const totalEl = document.getElementById('totalAmount');
             const shippingCostEl = document.getElementById('shippingCost');
+            const discountRow = document.getElementById('discountRow');
+            const discountAmountEl = document.getElementById('discountAmount');
             
             if (subtotalEl) subtotalEl.textContent = subtotal.toLocaleString() + ' د.ع';
             if (shippingDisplay) shippingDisplay.textContent = shipping.toLocaleString() + ' د.ع';
             if (totalEl) totalEl.textContent = total.toLocaleString() + ' د.ع';
             if (shippingCostEl) shippingCostEl.textContent = shipping.toLocaleString() + ' د.ع';
+            
+            // عرض صف الخصم
+            if (discountRow && discountAmountEl) {
+                if (appliedCoupon && discountDisplay > 0) {
+                    discountRow.style.display = 'block';
+                    discountAmountEl.textContent = `-${discountDisplay.toLocaleString()} د.ع`;
+                } else {
+                    discountRow.style.display = 'none';
+                }
+            }
         }
 
         // ===== تحديث عداد السلة =====
         function updateCartBadge() {
-            // محاولة تحديث العداد في الصفحة الرئيسية (إذا كانت مفتوحة)
             const badge = document.getElementById('cartCount');
             if (badge) {
                 let cnt = 0;
@@ -1218,63 +1454,41 @@
 
         // ===== التوصيل =====
         window.updateShipping = function() {
-            if (hasInternalProduct) {
-                // التوصيل ثابت 3000
-                const shipping = 3000;
-                const typeText = 'توصيل داخلي (بابل فقط)';
-                
-                const shippingEl = document.getElementById('shippingCost');
-                const shippingDisplay = document.getElementById('shippingDisplay');
-                const totalEl = document.getElementById('totalAmount');
-                const typeEl = document.getElementById('shippingType');
-                
-                if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
-                if (typeEl) typeEl.innerText = typeText;
-                if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
-                
-                let subtotal = 0;
-                Object.values(cart).forEach(item => {
-                    subtotal += (item.price || 0) * item.qty;
-                });
-                const total = subtotal + shipping;
-                if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
-                return;
-            }
+            updateTotals();
             
-            // جميع المنتجات عامة
+            // تحديث نوع التوصيل
             const province = document.getElementById('province').value;
-            let shipping = 5000;
-            let typeText = 'توصيل عام (جميع المحافظات)';
+            let shipping = hasInternalProduct ? 3000 : 5000;
+            let typeText = hasInternalProduct ? 'توصيل داخلي (بابل فقط)' : 'توصيل عام (جميع المحافظات)';
             
-            // التحقق من صحة المحافظة
-            if (province && !IRAQI_PROVINCES.includes(province)) {
-                showToast("المحافظة غير صالحة", "error");
-                return;
-            }
-            
-            if (province === 'بابل') {
-                shipping = 3000;
-                typeText = 'توصيل داخلي (بابل فقط)';
-            } else if (province && province !== '') {
-                shipping = 5000;
-                typeText = 'توصيل عام (باقي المحافظات)';
+            if (!hasInternalProduct) {
+                if (province === 'بابل') {
+                    shipping = 3000;
+                    typeText = 'توصيل داخلي (بابل فقط)';
+                } else if (province && province !== '') {
+                    shipping = 5000;
+                    typeText = 'توصيل عام (باقي المحافظات)';
+                } else {
+                    shipping = 0;
+                    typeText = 'يرجى اختيار المحافظة';
+                }
             }
             
             const shippingEl = document.getElementById('shippingCost');
-            const shippingDisplay = document.getElementById('shippingDisplay');
-            const totalEl = document.getElementById('totalAmount');
             const typeEl = document.getElementById('shippingType');
-            
-            if (shippingEl) shippingEl.innerText = shipping.toLocaleString() + ' د.ع';
+            if (shippingEl) shippingEl.innerText = shipping > 0 ? shipping.toLocaleString() + ' د.ع' : '--';
             if (typeEl) typeEl.innerText = typeText;
-            if (shippingDisplay) shippingDisplay.innerText = shipping.toLocaleString() + ' د.ع';
             
-            let subtotal = 0;
-            Object.values(cart).forEach(item => {
-                subtotal += (item.price || 0) * item.qty;
-            });
-            const total = subtotal + shipping;
-            if (totalEl) totalEl.innerText = total.toLocaleString() + ' د.ع';
+            // Reset coupon if shipping changes
+            if (appliedCoupon) {
+                appliedCoupon = null;
+                discountValue = 0;
+                const msg = document.getElementById('couponMessage');
+                if (msg) { msg.style.display = 'none'; msg.className = ''; }
+                document.getElementById('couponCodeInput').value = '';
+            }
+            
+            updateTotals();
         };
 
         // ===== التحقق من صحة الهاتف =====
@@ -1378,7 +1592,21 @@
             });
             
             let shipping = hasInternalProduct ? 3000 : (province === 'بابل' ? 3000 : 5000);
-            const totalAmount = subtotal + shipping;
+            let totalAmount = subtotal + shipping;
+            
+            // حساب الخصم
+            let discountApplied = 0;
+            let couponCode = null;
+            if (appliedCoupon) {
+                if (appliedCoupon.discountType === 'percent') {
+                    discountApplied = (totalAmount * appliedCoupon.discountValue) / 100;
+                } else {
+                    discountApplied = appliedCoupon.discountValue;
+                }
+                if (discountApplied > totalAmount) discountApplied = totalAmount;
+                totalAmount = totalAmount - discountApplied;
+                couponCode = appliedCoupon.code;
+            }
             
             const orderData = {
                 customerName: name,
@@ -1390,6 +1618,8 @@
                 subtotal: subtotal,
                 shipping: shipping,
                 totalAmount: totalAmount,
+                discountCode: couponCode,
+                discountAmount: discountApplied,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -1407,8 +1637,18 @@
                 orderData.id = newOrderRef.id;
                 await setDoc(newOrderRef, orderData);
                 
+                // ===== تحديث عدد استخدامات الكوبون =====
+                if (appliedCoupon) {
+                    const couponRef = doc(db, "coupons", appliedCoupon.id);
+                    await setDoc(couponRef, {
+                        usedCount: increment(1)
+                    }, { merge: true });
+                    console.log(`✅ تم تحديث usedCount للكوبون ${appliedCoupon.code}`);
+                }
+                
                 // إرسال إلى تيليجرام
                 let itemsList = orderItems.map(item => `- ${item.name} (العدد: ${item.qty})`).join('\n');
+                const couponText = couponCode ? `\n🎫 كود الخصم: ${couponCode} (خصم ${discountApplied.toLocaleString()} د.ع)` : '';
                 const msg = `📦 طلب جديد من السلة:
         👤 ${name}
         📞 ${phone}
@@ -1417,7 +1657,7 @@
         ${notes ? `📝 ملاحظات: ${notes}\n` : ''}
         📦 المنتجات:
         ${itemsList}
-        💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع`;
+        💰 الإجمالي: ${totalAmount.toLocaleString()} د.ع${couponText}`;
                 
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
                 
@@ -1437,10 +1677,12 @@
             }
         };
 
-        // ===== نافذة النجاح =====
+        // ===== نافذة النجاح (FIXED) =====
         function showSuccessModal() {
             const overlay = document.getElementById('successOverlay');
             if (overlay) {
+                // التمرير للأعلى لتظهر النافذة مباشرة
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 overlay.style.display = 'flex';
                 void overlay.offsetWidth;
                 overlay.classList.add('active');
@@ -1471,9 +1713,6 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // ===== تحميل عداد السلة في شريط الصفحة =====
-        // سيتم تحديثه عند تغيير السلة
-
         // ===== تأثير التمرير على الشريط =====
         window.addEventListener('scroll', () => {
             const navbar = document.querySelector('.ios-navbar');
@@ -1481,13 +1720,6 @@
                 navbar.classList.toggle('scrolled', window.scrollY > 10);
             }
         });
-
-        // ===== جعل الدوال عامة =====
-        window.loadCart = loadCart;
-        window.renderCart = renderCart;
-        window.updateTotals = updateTotals;
-        window.updateCartBadge = updateCartBadge;
-        window.showToast = showToast;
     </script>
 </body>
 </html>
