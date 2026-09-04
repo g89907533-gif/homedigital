@@ -863,6 +863,7 @@
         let quantity = 1;
         let mainImageIndex = 0;
         let effectivePrice = 0; // السعر الفعلي بعد الخصم
+        let toastTimeout;
 
         // ===== INITIALIZATION =====
         async function init() {
@@ -1144,16 +1145,21 @@
         };
 
         // ===== CART FUNCTIONS =====
+        // دالة الإضافة للسلة مع تحديث العداد فوراً
         window.addToCart = function(productId, name, price, image = '') {
             let cart = JSON.parse(localStorage.getItem('cart') || '{}');
             if (cart[productId]) {
-                cart[productId].qty++;
+                cart[productId].qty += quantity; // إضافة الكمية المحددة
             } else {
-                cart[productId] = { id: productId, name, price, qty: 1, image };
+                cart[productId] = { id: productId, name, price, qty: quantity, image };
             }
             localStorage.setItem('cart', JSON.stringify(cart));
-            loadCartCount();
+            loadCartCount(); // تحديث العداد فوراً
             showToast("تمت الإضافة للسلة بنجاح", "cart");
+            // إعادة تعيين الكمية إلى 1 بعد الإضافة
+            quantity = 1;
+            const qtyEl = document.getElementById('qtyValue');
+            if (qtyEl) qtyEl.innerText = quantity;
         };
 
         function loadCartCount() {
@@ -1167,6 +1173,13 @@
                 countEl.innerText = count;
             }
         }
+
+        // استماع لتحديثات localStorage من تبويبات أخرى
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'cart') {
+                loadCartCount();
+            }
+        });
 
         // ===== SHARE FUNCTION =====
         window.shareProduct = function() {
@@ -1231,8 +1244,9 @@
             let icon = type === 'error' ? '✕' : '✓';
             toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
             
+            if (toastTimeout) clearTimeout(toastTimeout);
             requestAnimationFrame(() => toast.classList.add('show'));
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         // Navbar scroll effect
